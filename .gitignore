@@ -1,0 +1,29 @@
+# Create .gitignore file
+@"
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+*.egg-info/
+
+# Firebase credentials (IMPORTANT!)
+serviceAccountKey.json
+
+# Node modules
+node_modules/
+
+# Environment variables
+.env
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+"@ | Out-File -FilePath .gitignore -Encoding utf8
