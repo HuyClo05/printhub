@@ -12,6 +12,7 @@ env/
 
 # Firebase credentials (IMPORTANT!)
 serviceAccountKey.json
+init.js
 
 # Node modules
 node_modules/
