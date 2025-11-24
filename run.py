@@ -15,11 +15,3 @@ import os
 project_root = os.path.dirname(os.path.abspath(__file__))
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
-
-# Now we can import from api package
-from api.scrapers import app
-
-if __name__ == "__main__":
-    print("Starting PrintHub API Server...")
-    print(f"Project root: {project_root}")
-    app.run(debug=True, host="0.0.0.0", port=5000)
