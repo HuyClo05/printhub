@@ -35,7 +35,8 @@ router.beforeEach((to, from, next) => {
 
   if (to.meta.requiresAuth && !isAuthenticated.value) {
     next('/login')
-  } else if ((to.path === '/login' || to.path === '/signup') && isAuthenticated.value) {
+  } else if ((to.path === '/login' || to.path === '/signup') && isAuthenticated.value && (from.path !== '/login' && from.path !== '/signup')) {
+    // Only redirect to home if coming from a non-auth page
     next('/')
   } else {
     next()

@@ -8,7 +8,12 @@ import vueDevTools from 'vite-plugin-vue-devtools'
 export default defineConfig({
   plugins: [
     vue(),
-    vueDevTools(),
+    vueDevTools({
+      // Configure DevTools overlay position
+      overlay: {
+        position: 'bottom-right' // Options: 'top-left', 'top-right', 'bottom-left', 'bottom-right'
+      }
+    }),
   ],
   resolve: {
     alias: {
