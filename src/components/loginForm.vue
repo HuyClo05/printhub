@@ -4,9 +4,9 @@
     <form @submit.prevent="handleLogin">
       <div>
         <input
-          v-model="email"
-          type="email"
-          placeholder="Email"
+          v-model="emailOrUsername"
+          type="text"
+          placeholder="Email or Username"
           required
         />
       </div>
@@ -38,12 +38,12 @@ import ClearButton from './ClearButton.vue'
 const { login, error } = useAuth()
 const router = useRouter()
 
-const email = ref('')
+const emailOrUsername = ref('')
 const password = ref('')
 
 const handleLogin = async () => {
   try {
-    await login(email.value, password.value)
+    await login(emailOrUsername.value, password.value)
     router.push('/')
   } catch (err) {
     console.error('Login failed:', err)

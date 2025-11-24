@@ -5,7 +5,7 @@ import {
   signOut,
   onAuthStateChanged
 } from 'firebase/auth'
-import { doc, setDoc, getDoc } from 'firebase/firestore'
+import { doc, setDoc, getDoc, collection, query, where, getDocs } from 'firebase/firestore'
 import { auth, db } from './init'
 
 const user = ref(null)
@@ -33,6 +33,18 @@ export function useAuth() {
   const signup = async (email, password, displayName = '') => {
     error.value = null
     try {
+      // Check if username already exists
+      if (displayName) {
+        const usersRef = collection(db, 'users')
+        const q = query(usersRef, where('userName', '==', displayName))
+        const querySnapshot = await getDocs(q)
+
+        if (!querySnapshot.empty) {
+          error.value = 'This username is already taken. Please choose another one.'
+          throw new Error(error.value)
+        }
+      }
+
       // Create authentication user
       const userCredential = await createUserWithEmailAndPassword(auth, email, password)
       user.value = userCredential.user
@@ -41,7 +53,7 @@ export function useAuth() {
       const userData = {
         uid: userCredential.user.uid,
         email: email,
-        displayName: displayName,
+        userName: displayName,
         createdAt: new Date().toISOString(),
         savedModels: [],
         printHistory: [],
@@ -57,14 +69,39 @@ export function useAuth() {
 
       return user.value
     } catch (err) {
-      error.value = err.message
+      // Convert Firebase error codes to readable messages
+      if (err.code === 'auth/email-already-in-use') {
+        error.value = 'This email is already registered. Please login or use a different email.'
+      } else if (err.code === 'auth/invalid-email') {
+        error.value = 'Please enter a valid email address.'
+      } else if (!error.value) {
+        error.value = err.message
+      }
       throw err
     }
   }
 
-  const login = async (email, password) => {
+  const login = async (emailOrUsername, password) => {
     error.value = null
     try {
+      let email = emailOrUsername
+
+      // Check if input is a username (no @ symbol)
+      if (!emailOrUsername.includes('@')) {
+        // Query Firestore to find email by username
+        const usersRef = collection(db, 'users')
+        const q = query(usersRef, where('userName', '==', emailOrUsername))
+        const querySnapshot = await getDocs(q)
+
+        if (querySnapshot.empty) {
+          error.value = 'Username not found. Please check your username or sign up.'
+          throw new Error(error.value)
+        }
+
+        // Get the email from the user document
+        email = querySnapshot.docs[0].data().email
+      }
+
       const userCredential = await signInWithEmailAndPassword(auth, email, password)
       user.value = userCredential.user
 
@@ -76,7 +113,20 @@ export function useAuth() {
 
       return user.value
     } catch (err) {
-      error.value = err.message
+      // Convert Firebase error codes to readable messages
+      if (err.code === 'auth/invalid-credential') {
+        error.value = 'Invalid email/username or password. Please try again.'
+      } else if (err.code === 'auth/user-not-found') {
+        error.value = 'No account found with this email. Please sign up first.'
+      } else if (err.code === 'auth/wrong-password') {
+        error.value = 'Incorrect password. Please try again.'
+      } else if (err.code === 'auth/invalid-email') {
+        error.value = 'Please enter a valid email address.'
+      } else if (err.code === 'auth/too-many-requests') {
+        error.value = 'Too many failed login attempts. Please try again later.'
+      } else if (!error.value) {
+        error.value = err.message
+      }
       throw err
     }
   }

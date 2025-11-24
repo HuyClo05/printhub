@@ -4,6 +4,14 @@
     <form @submit.prevent="handleSignup">
       <div>
         <input
+          v-model="userName"
+          type="text"
+          placeholder="Username"
+          required
+        />
+      </div>
+      <div>
+        <input
           v-model="email"
           type="email"
           placeholder="Email"
@@ -16,7 +24,9 @@
           type="password"
           placeholder="Password"
           required
+          @input="checkPasswordRequirements"
         />
+        <PasswordRequirements :checks="passwordChecks" />
       </div>
       <ClearButton
         caption="Sign Up"
@@ -30,20 +40,39 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuth } from '../../firebase/authentication'
 import ClearButton from './ClearButton.vue'
+import PasswordRequirements from './PasswordRequirements.vue'
 
 const { signup, error } = useAuth()
 const router = useRouter()
 
+const userName = ref('')
 const email = ref('')
 const password = ref('')
 
+const passwordChecks = reactive({
+  minLength: false,
+  hasUpperCase: false,
+  hasLowerCase: false,
+  hasNumber: false,
+  hasSpecialChar: false
+})
+
+const checkPasswordRequirements = () => {
+  const pwd = password.value
+  passwordChecks.minLength = pwd.length >= 8
+  passwordChecks.hasUpperCase = /[A-Z]/.test(pwd)
+  passwordChecks.hasLowerCase = /[a-z]/.test(pwd)
+  passwordChecks.hasNumber = /[0-9]/.test(pwd)
+  passwordChecks.hasSpecialChar = /[!@#$%^&*()_\-+]/.test(pwd)
+}
+
 const handleSignup = async () => {
   try {
-    await signup(email.value, password.value)
+    await signup(email.value, password.value, userName.value)
     router.push('/')
   } catch (err) {
     console.error('Signup failed:', err)
