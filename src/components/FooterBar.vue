@@ -52,7 +52,6 @@
   border-top: 2px solid var(--border-color);
   margin-top: auto;
   z-index: 100;
-  font-family: Arial, sans-serif;
 }
 
 .footer-content {

@@ -4,13 +4,6 @@
       <div class="logo">
         <router-link to="/">PrintHub</router-link>
       </div>
-      <ul class="nav-links">
-        <li><router-link to="/models">3D Models</router-link></li>
-      </ul>
-    </div>
-
-    <div class="center-section">
-      <SearchBar @search="onSearch" />
     </div>
 
     <div class="right-section">
@@ -23,7 +16,6 @@
 
 <script setup>
 import { ref, onMounted, onBeforeUnmount, defineExpose } from 'vue'
-import SearchBar from '@/components/SearchBar.vue'
 
 const navbar = ref(null)
 const height = ref(0)
@@ -53,22 +45,17 @@ onMounted(() => {
 
 // Expose height to parent (App.vue)
 defineExpose({ height })
-
-const onSearch = (query) => {
-  console.log('Search query:', query)
-}
 </script>
 
 <style scoped>
 .navbar {
-  font-family: Arial, sans-serif;
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   z-index: 1000;
-  display: grid;
-  grid-template-columns: auto 1fr auto;
+  display: flex;
+  justify-content: space-between;
   align-items: center;
   gap: 20px;
   padding: 6px 20px;
@@ -117,12 +104,6 @@ const onSearch = (query) => {
   display: flex;
   align-items: center;
   gap: 2rem;
-}
-
-.center-section {
-  display: flex;
-  justify-content: center;
-  width: 100%;
 }
 
 .right-section {

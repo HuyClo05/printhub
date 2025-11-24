@@ -1,6 +1,6 @@
 <template>
   <button
-    class="clear-btn"
+    class="clear-button"
     :class="{ active: isActive }"
     :style="{ '--btn-size': size }"
     @click="handleClick"
@@ -45,7 +45,7 @@ const handleClick = () => {
 </script>
 
 <style scoped>
-.clear-btn {
+.clear-button {
   background: none;
   border: 2px solid transparent;
   cursor: pointer;
@@ -61,37 +61,31 @@ const handleClick = () => {
 }
 
 /* icon sizing */
-.clear-btn img {
+.clear-button img {
   width: calc(var(--btn-size) * 0.6);
   height: calc(var(--btn-size) * 0.6);
   object-fit: contain;
 }
 
 /* caption */
-.clear-btn .caption {
-  opacity: 0;
-  visibility: hidden;
-  transform: translateY(5px);
+.clear-button .caption {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
   transition: all 0.2s ease;
-  color: #000;
+  color: #ffffff;
   font-size: 0.8rem;
   margin-top: 4px;
 }
 
 /* hover */
-.clear-btn:hover {
+.clear-button:hover {
   background-color: v-bind('hoverColor');
   transform: scale(1.05);
 }
 
-.clear-btn:hover .caption {
-  opacity: 1;
-  visibility: visible;
-  transform: translateY(0);
-}
-
-/* active */
-.clear-btn.active {
+/* active */;
+.clear-button.active {
   background-color: v-bind('activeColor');
   color: white;
 }

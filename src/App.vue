@@ -1,15 +1,16 @@
 <template>
-  <div class="app" :style="{ paddingTop: navbarHeight + 'px' }">
-    <NavBar ref="navbarRef" />
-    <main class="app-main">
-      <router-view />
+  <div id="app">
+    <NavBar ref="navbarRef" v-if="!isAuthPage" />
+    <main>
+      <RouterView />
     </main>
-    <FooterBar />
+    <FooterBar v-if="!isAuthPage" />
   </div>
 </template>
 
 <script setup>
-import { ref, watchEffect } from 'vue'
+import { ref, watchEffect, computed } from 'vue'
+import { useRoute } from 'vue-router'
 import NavBar from '@/components/NavBar.vue'
 import FooterBar from './components/FooterBar.vue'
 
@@ -18,6 +19,13 @@ const navbarHeight = ref(0)
 
 watchEffect(() => {
   navbarHeight.value = navbarRef.value?.height || 0
+})
+
+const route = useRoute()
+
+// Hide NavBar and FooterBar on auth pages
+const isAuthPage = computed(() => {
+  return route.path === '/login' || route.path === '/signup'
 })
 </script>
 
@@ -34,17 +42,23 @@ watchEffect(() => {
   --transition: all 0.3s ease;
 }
 
-html, body, #app {
+html, body {
   margin: 0;
   padding: 0;
   background-color: var(--bg-darker);
   height: 100%;
   width: 100%;
   box-sizing: border-box;
+  font-family: Arial, sans-serif;
+}
+
+#app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
 }
 
 .app {
-  font-family: Arial, sans-serif;
   padding-top: var(--navbar-height, 0px);
   background-color: var(--bg-dark);
   display: flex;
@@ -109,5 +123,10 @@ button {
 /* ===== ROUTER VIEW LAYOUT ===== */
 .app-main {
   flex: 1;
+}
+
+main {
+  flex: 1;
+  overflow-y: auto;
 }
 </style>

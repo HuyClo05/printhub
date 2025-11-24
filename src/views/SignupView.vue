@@ -1,15 +1,15 @@
 <template>
-  <div class="login-page">
-    <LoginForm />
+  <div class="signup-page">
+    <SignupForm />
   </div>
 </template>
 
 <script setup>
-import LoginForm from '@/components/loginForm.vue'
+import SignupForm from '@/components/signUpForm.vue'
 </script>
 
 <style scoped>
-.login-page {
+.signup-page {
   position: fixed;
   top: 0;
   left: 0;
