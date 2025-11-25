@@ -5,7 +5,7 @@
     :style="{ '--btn-size': size }"
     @click="handleClick"
   >
-    <!-- icon slot -->
+    <!-- icon slot (optional) -->
     <slot name="icon">
       <img v-if="imgSrc" :src="imgSrc" alt="icon" />
     </slot>
