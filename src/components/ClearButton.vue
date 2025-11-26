@@ -1,7 +1,6 @@
 <template>
   <button
     class="clear-button"
-    :class="{ active: isActive }"
     :style="{ '--btn-size': size }"
     @click="handleClick"
   >
@@ -9,7 +8,6 @@
     <slot name="icon">
       <img v-if="imgSrc" :src="imgSrc" alt="icon" />
     </slot>
-
     <!-- caption slot (optional) -->
     <div v-if="$slots.caption || caption" class="caption">
       <slot name="caption">{{ caption }}</slot>
@@ -18,8 +16,6 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
-
 defineProps({
   imgSrc: String,
   caption: String,
@@ -36,12 +32,6 @@ defineProps({
     default: '#2196f3'
   },
 })
-
-const isActive = ref(false)
-
-const handleClick = () => {
-  isActive.value = true
-}
 </script>
 
 <style scoped>
