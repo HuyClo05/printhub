@@ -56,6 +56,7 @@ html, body {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  padding: 10px 0px 0px 0px;
 }
 
 .app {
@@ -64,69 +65,5 @@ html, body {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-}
-
-/* ===== COMMON UTILITY CLASSES ===== */
-a {
-  transition: var(--transition);
-}
-
-button {
-  transition: var(--transition);
-}
-
-/* ===== COMMON LINK STYLES ===== */
-.nav-link {
-  text-decoration: none;
-  color: var(--text-primary);
-}
-
-.nav-link:hover {
-  color: var(--primary-color);
-}
-
-/* ===== COMMON CARD STYLES ===== */
-.card-base {
-  background: var(--bg-darker);
-  border: 2px solid var(--border-color);
-}
-
-.card-base:hover {
-  transform: translateY(-2.5px);
-}
-
-/* ===== COMMON INPUT STYLES ===== */
-.input-base {
-  background-color: var(--bg-light);
-  border: none;
-  color: var(--text-primary);
-  padding: 6px 10px;
-  border-radius: 8px;
-}
-
-.input-base:focus {
-  outline: none;
-}
-
-/* ===== COMMON BUTTON STYLES ===== */
-.btn-base {
-  background: none;
-  border: none;
-  cursor: pointer;
-  transition: var(--transition);
-}
-
-.btn-icon-hover:hover {
-  filter: brightness(0) invert(0);
-}
-
-/* ===== ROUTER VIEW LAYOUT ===== */
-.app-main {
-  flex: 1;
-}
-
-main {
-  flex: 1;
-  overflow-y: auto;
 }
 </style>
