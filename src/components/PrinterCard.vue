@@ -33,18 +33,18 @@
         </div>
       </div>
 
-      <div class="action-buttons">
+      <div class="navigation-section">
         <ClearButton
-          class="action-btn btn"
-          caption="Pause"
+          class="nav-btn"
+          caption="Klipper"
           size="auto"
           hoverColor="var(--primary-color)"
         />
         <ClearButton
-          class="action-btn btn"
-          caption="Stop"
+          class="nav-btn"
+          caption="Quick View"
           size="auto"
-          hoverColor="#f44336"
+          hoverColor="var(--primary-color)"
         />
       </div>
     </div>
@@ -113,7 +113,7 @@ const statusClass = computed(() => {
 }
 
 .snapshot-container img {
-  width: 220px;
+  width: 260px;
   height: 100%;
   object-fit: cover;
   display: block;
@@ -210,24 +210,26 @@ const statusClass = computed(() => {
   font-weight: 600;
 }
 
-/* Action Buttons */
-.action-buttons {
+/* Navigation Section */
+.navigation-section {
   display: flex;
-  gap: 0.5rem;
-  padding: 0.75rem 1rem;
-  background: var(--bg-dark);
-  border-top: 1px solid var(--border-color);
+  border-top: 2px solid var(--border-color);
 }
 
-.action-btn {
+.nav-btn {
   flex: 1;
-  padding: 0.5rem;
-  font-size: 0.8rem;
+  width: 50% !important;
+  height: auto !important;
+  padding: 0.75rem 1rem;
+  background: var(--bg-dark);
+  border: none;
+  border-radius: 0;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
   transition: all 0.2s ease;
 }
 
-.btn {
-  background: var(--bg-light);
-  border: 1px solid var(--border-color);
+.nav-btn:first-child {
+  border-right: 1px solid var(--border-color);
 }
 </style>

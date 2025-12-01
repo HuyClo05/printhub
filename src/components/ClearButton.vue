@@ -71,12 +71,5 @@ defineProps({
 /* hover */
 .clear-button:hover {
   background-color: v-bind('hoverColor');
-  transform: scale(1.05);
-}
-
-/* active */;
-.clear-button.active {
-  background-color: v-bind('activeColor');
-  color: white;
 }
 </style>
