@@ -89,9 +89,16 @@ const props = defineProps({
 
 const statusClass = computed(() => {
   const status = props.status.toLowerCase()
+  // Printing states
   if (status.includes('printing')) return 'status-printing'
-  if (status.includes('ready')) return 'status-ready'
+  // Ready states
+  if (status.includes('ready') || status.includes('idle')) return 'status-ready'
+  if (status.includes('completed') || status.includes('done')) return 'status-completed'
+  // Error states
   if (status.includes('error') || status.includes('fail')) return 'status-error'
+  if (status.includes('paused')) return 'status-paused'
+  if (status.includes('cancelled')) return 'status-cancelled'
+  if (status.includes('offline')) return 'status-offline'
   return 'status-ready'
 })
 </script>
@@ -138,8 +145,28 @@ const statusClass = computed(() => {
   color: #fff;
 }
 
+.status-completed {
+  background: #2196f3;
+  color: #fff;
+}
+
 .status-error {
   background: #f44336;
+  color: #fff;
+}
+
+.status-paused {
+  background: #ff9800;
+  color: #000;
+}
+
+.status-cancelled {
+  background: #9e9e9e;
+  color: #fff;
+}
+
+.status-offline {
+  background: #616161;
   color: #fff;
 }
 
