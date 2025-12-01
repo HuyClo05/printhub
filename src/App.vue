@@ -59,10 +59,12 @@ html, body {
   padding: 10px 0px 0px 0px;
 }
 
+#app main {
+  flex: 1;
+}
+
 .app {
-  padding-top: var(--navbar-height, 0px);
   background-color: var(--bg-dark);
-  display: flex;
   flex-direction: column;
   min-height: 100vh;
 }
