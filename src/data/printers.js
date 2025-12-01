@@ -50,7 +50,7 @@ export const printers = [
       lastSeen: '2025-11-30T14:25:00Z'
     },
     status: {
-      state: 'ready',
+      state: 'paused',
       nozzleTemp: 25,
       nozzleTempTarget: 0,
       bedTemp: 22,
@@ -83,7 +83,7 @@ export const printers = [
       lastSeen: '2025-11-30T14:20:00Z'
     },
     status: {
-      state: 'idle',
+      state: 'ready',
       nozzleTemp: 23,
       nozzleTempTarget: 0,
       bedTemp: 21,

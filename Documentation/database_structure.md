@@ -262,13 +262,13 @@ Stores metadata for uploaded STL files.
 
 ### Printer Status
 
-| Status       | Color                  | Description               |
-| ------------ | ---------------------- | ------------------------- |
-| `printing` | 🟦 Cyan (#00bcd4)      | Currently printing a task |
-| `ready`    | 🟩 Green (#4caf50)     | Idle, ready for new tasks |
-| `paused`   | 🟧 Orange (#ff9800)    | Print paused by user      |
-| `error`    | 🟥 Red (#f44336)       | Error occurred            |
-| `offline`  | ⬛ Dark Gray (#616161) | Printer not connected     |
+| Status       | Description               |
+| ------------ | ------------------------- |
+| `printing` | Currently printing a task |
+| `ready`    | Idle, ready for new tasks |
+| `paused`   | Print paused by user      |
+| `error`    | Error occurred            |
+| `offline`  | Printer not connected     |
 
 ### Print Task Status
 
