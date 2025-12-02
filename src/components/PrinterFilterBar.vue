@@ -52,7 +52,6 @@ const filters = [
   padding: 0.5rem;
   background: var(--bg-light);
   border: 1px solid var(--border-color);
-  border-radius: 4px;
 }
 
 .filter-btn {
