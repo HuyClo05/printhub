@@ -19,8 +19,8 @@
 
 <script setup>
 import { ref, computed } from 'vue'
-import { printers as printersData } from '@/data/printers'
-import { printJobs as printJobsData } from '@/data/printJobs'
+import { printers as printersData } from '@/exampleData/example_printers'
+import { printJobs as printJobsData } from '@/exampleData/example_printJobs'
 import ActionsBar from '@/components/ActionsBar.vue'
 import PrintJobsTable from '@/components/PrintJobsTable.vue'
 import PrinterFilterBar from '@/components/PrinterFilterBar.vue'
