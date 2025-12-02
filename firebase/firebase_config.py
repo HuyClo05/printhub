@@ -42,4 +42,4 @@ except ValueError:
 # Connect to the default Firestore database
 # If you have a named database called "models", use: firestore.client(database="models")
 # Otherwise, just use the default database
-models_db = firestore.client(database_id="models")
+db = firestore.client()
