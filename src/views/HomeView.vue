@@ -12,7 +12,7 @@
         v-model="statusFilter"
         v-model:searchQuery="searchQuery"
       />
-      <PrinterGrid :printers="filteredPrinters" @select="handlePrinterSelect" />
+      <PrinterGrid :printers="filteredPrinters" :printTasks="printTasks" @select="handlePrinterSelect" />
     </div>
   </div>
 </template>
@@ -30,6 +30,7 @@ import PrinterGrid from '@/components/PrinterGrid.vue'
 // Data from Firestore
 const printers = ref([])
 const printJobs = ref([])
+const printTasks = ref([])
 
 onMounted(async () => {
   // Get all printers
@@ -45,7 +46,23 @@ onMounted(async () => {
     id: doc.id,
     ...doc.data()
   }))
+
+  // Get all print tasks
+  const tasksSnapshot = await getDocs(collection(db, 'printTasks'))
+  printTasks.value = tasksSnapshot.docs.map(doc => ({
+    id: doc.id,
+    ...doc.data()
+  }))
 })
+
+// Helper to get task progress for a printer
+const getTaskProgress = (currentTaskId) => {
+  if (!currentTaskId) return 0
+  const task = printTasks.value.find(t => t.taskId === currentTaskId)
+  if (!task || !task.assigned || task.assigned.length === 0) return 0
+  // Get the first assigned printer's progress
+  return task.assigned[0]?.progress || 0
+}
 
 // Search and filter state
 const searchQuery = ref('')

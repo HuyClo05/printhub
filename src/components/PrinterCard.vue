@@ -12,8 +12,8 @@
 
       <div class="printer-stats">
         <div class="stat-row">
-          <span class="stat-label">Job</span>
-          <span class="stat-value">{{ currentPrintJob }}</span>
+          <span class="stat-label">Task</span>
+          <span class="stat-value">{{ currentPrintTask }}</span>
         </div>
         <div class="stat-row">
           <span class="stat-label">Nozzle</span>
@@ -65,9 +65,9 @@ const props = defineProps({
     type: String,
     default: "https://via.placeholder.com/260"
   },
-  currentPrintJob: {
+  currentPrintTask: {
     type: String,
-    default: "No active job"
+    default: "No active task"
   },
   status: {
     type: String,
