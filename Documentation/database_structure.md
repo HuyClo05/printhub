@@ -16,11 +16,10 @@ PrintHub uses Firebase Firestore (NoSQL) to store data. The structure follows th
 
 ### 1. Users Collection
 
-**Path:** `users/{userId}`
+**Path:** `users/{uid}`
 
 ```javascript
 {
-  uid
   email
   userName
   avatarUrl
@@ -148,12 +147,12 @@ A Print Task represents a single STL file that can be printed on one or more pri
 
 ### 6. Files Collection
 
-**Path:** `files/{fileId}`
+**Path:** `stlFiles/{fileId}`
 
 Stores metadata for uploaded STL files.
 
 ```javascript
-files/{fileId} {
+{
   fileName
   fileSize
 
