@@ -15,7 +15,9 @@
     "lint": "run-s lint:*"
   },
   "dependencies": {
+    "dotenv": "^17.2.3",
     "firebase": "^12.6.0",
+    "firebase-admin": "^13.6.0",
     "vue": "^3.5.22",
     "vue-router": "^4.6.3"
   },
