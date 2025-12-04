@@ -1,89 +1,107 @@
-// Example Printer Queues Data (following database_structure.md)
+// Example Printer Queue Data (following database_structure.md)
 // Path: printers/{printerId}/queue/{queuePosition}
+// This is a subcollection of printers
 
 export const printerQueues = {
-  // Queue for printer_abc123 (Workshop Ender)
-  printer_abc123: [
+  // Queue for printer_abc123
+  'printer_abc123': [
     {
-      position: 1,
+      queuePosition: 1,
       taskId: 'task_001',
       jobId: 'job_12345',
-      fileName: 'phone_case_v1.stl',
-      thumbnailUrl: 'https://via.placeholder.com/100',
-      addedAt: '2025-11-30T11:00:00Z',
+      addedAt: '2025-11-30T10:00:00Z',
       addedBy: 'user_xyz789',
-      status: 'printing',
-      estimatedTime: 7200
-    },
-    {
-      position: 2,
-      taskId: 'task_011',
-      jobId: 'job_12348',
-      fileName: 'miniature_base.stl',
-      thumbnailUrl: 'https://via.placeholder.com/100',
-      addedAt: '2025-11-30T13:00:00Z',
-      addedBy: 'user_def456',
-      status: 'queued',
-      estimatedTime: 3600
+      status: 'ready',
+      estimatedTime: 7200,
+      thumbnailUrl: 'https://via.placeholder.com/100'
     }
   ],
 
-  // Queue for printer_def456 (Prusa Workshop)
-  printer_def456: [
-    {
-      position: 1,
-      taskId: 'task_002',
-      jobId: 'job_12345',
-      fileName: 'phone_case_v2.stl',
-      thumbnailUrl: 'https://via.placeholder.com/100',
-      addedAt: '2025-11-30T10:30:00Z',
-      addedBy: 'user_xyz789',
-      status: 'queued',
-      estimatedTime: 6800
-    }
-  ],
+  // Queue for printer_def456 (empty - ready state)
+  'printer_def456': [],
 
-  // Queue for printer_ghi789 (Bambu Speed) - empty after completing task
-  printer_ghi789: [],
+  // Queue for printer_ghi789 (empty - ready state)
+  'printer_ghi789': [],
 
-  // Queue for printer_jkl012 (Voron Beast) - has error
-  printer_jkl012: [
+  // Queue for printer_jkl012
+  'printer_jkl012': [
     {
-      position: 1,
+      queuePosition: 1,
       taskId: 'task_005',
       jobId: 'job_12346',
-      fileName: 'gear_assembly.stl',
-      thumbnailUrl: 'https://via.placeholder.com/100',
-      addedAt: '2025-11-30T07:30:00Z',
-      addedBy: 'user_abc123',
-      status: 'error',
-      estimatedTime: 10800
-    },
-    {
-      position: 2,
-      taskId: 'task_012',
-      jobId: 'job_12348',
-      fileName: 'miniature_hero.stl',
-      thumbnailUrl: 'https://via.placeholder.com/100',
       addedAt: '2025-11-30T08:00:00Z',
-      addedBy: 'user_def456',
-      status: 'queued',
-      estimatedTime: 4500
+      addedBy: 'user_abc123',
+      status: 'ready',
+      estimatedTime: 10800,
+      thumbnailUrl: 'https://via.placeholder.com/100'
     }
   ],
 
-  // Queue for printer_mno345 (K1 Speedy) - offline
-  printer_mno345: [
+  // Queue for printer_mno345 (empty - offline)
+  'printer_mno345': [],
+
+  // Queue for printer_pqr678
+  'printer_pqr678': [
     {
-      position: 1,
-      taskId: 'task_013',
-      jobId: 'job_12348',
-      fileName: 'miniature_weapon.stl',
-      thumbnailUrl: 'https://via.placeholder.com/100',
-      addedAt: '2025-11-27T12:00:00Z',
+      queuePosition: 1,
+      taskId: 'task_020',
+      jobId: 'job_12350',
+      addedAt: '2025-12-02T08:00:00Z',
+      addedBy: 'user_xyz789',
+      status: 'ready',
+      estimatedTime: 9000,
+      thumbnailUrl: 'https://via.placeholder.com/100'
+    }
+  ],
+
+  // Queue for printer_stu901 (empty - ready)
+  'printer_stu901': [],
+
+  // Queue for printer_vwx234
+  'printer_vwx234': [
+    {
+      queuePosition: 1,
+      taskId: 'task_021',
+      jobId: 'job_12351',
+      addedAt: '2025-12-02T09:00:00Z',
       addedBy: 'user_def456',
-      status: 'queued',
-      estimatedTime: 2400
+      status: 'ready',
+      estimatedTime: 16200,
+      thumbnailUrl: 'https://via.placeholder.com/100'
+    }
+  ],
+
+  // Queue for printer_yza567 (empty - ready)
+  'printer_yza567': [],
+
+  // Queue for printer_bcd890
+  'printer_bcd890': [
+    {
+      queuePosition: 1,
+      taskId: 'task_022',
+      jobId: 'job_12352',
+      addedAt: '2025-12-02T06:00:00Z',
+      addedBy: 'user_abc123',
+      status: 'ready',
+      estimatedTime: 10800,
+      thumbnailUrl: 'https://via.placeholder.com/100'
+    }
+  ],
+
+  // Queue for printer_efg123 (empty - offline)
+  'printer_efg123': [],
+
+  // Queue for printer_hij456
+  'printer_hij456': [
+    {
+      queuePosition: 1,
+      taskId: 'task_023',
+      jobId: 'job_12353',
+      addedAt: '2025-12-02T10:00:00Z',
+      addedBy: 'user_xyz789',
+      status: 'ready',
+      estimatedTime: 5400,
+      thumbnailUrl: 'https://via.placeholder.com/100'
     }
   ]
 }

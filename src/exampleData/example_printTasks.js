@@ -1,150 +1,178 @@
 // Example Print Tasks Data (following database_structure.md)
+// Path: printTasks/{taskId}
 
 export const printTasks = [
   {
     taskId: 'task_001',
     jobId: 'job_12345',
-    file: {
-      fileId: 'file_001',
-      fileName: 'phone_case_v1.stl',
-      fileSize: 1024000,
-      stlUrl: 'https://storage.firebase.com/stl/phone_case_v1.stl',
-      gcodeUrl: 'https://storage.firebase.com/gcode/phone_case_v1.gcode',
-      thumbnailUrl: 'https://via.placeholder.com/100'
-    },
-    assignedPrinters: [
+    fileId: 'file_001',
+    status: 'printing',
+    assigned: [
       {
         printerId: 'printer_abc123',
-        printerName: 'Workshop Ender',
         status: 'printing',
         progress: 45,
-        queuePosition: null,
         startedAt: '2025-11-30T12:00:00Z',
         completedAt: null
       }
     ],
-    status: 'in-progress',
     createdAt: '2025-11-30T10:00:00Z',
-    estimatedPrintTime: 7200,
-    results: {
-      successCount: 0,
-      failCount: 0,
-      totalFilamentUsed: 0
-    }
+    estimatedPrintTime: 7200
   },
   {
     taskId: 'task_002',
     jobId: 'job_12345',
-    file: {
-      fileId: 'file_002',
-      fileName: 'phone_case_v2.stl',
-      fileSize: 1100000,
-      stlUrl: 'https://storage.firebase.com/stl/phone_case_v2.stl',
-      gcodeUrl: 'https://storage.firebase.com/gcode/phone_case_v2.gcode',
-      thumbnailUrl: 'https://via.placeholder.com/100'
-    },
-    assignedPrinters: [
+    fileId: 'file_002',
+    status: 'queued',
+    assigned: [
       {
         printerId: 'printer_def456',
-        printerName: 'Prusa Workshop',
         status: 'queued',
         progress: 0,
-        queuePosition: 1,
         startedAt: null,
         completedAt: null
       }
     ],
-    status: 'queued',
     createdAt: '2025-11-30T10:00:00Z',
-    estimatedPrintTime: 6800,
-    results: {
-      successCount: 0,
-      failCount: 0,
-      totalFilamentUsed: 0
-    }
+    estimatedPrintTime: 6800
   },
   {
     taskId: 'task_003',
     jobId: 'job_12345',
-    file: {
-      fileId: 'file_003',
-      fileName: 'phone_stand.stl',
-      fileSize: 850000,
-      stlUrl: 'https://storage.firebase.com/stl/phone_stand.stl',
-      gcodeUrl: 'https://storage.firebase.com/gcode/phone_stand.gcode',
-      thumbnailUrl: 'https://via.placeholder.com/100'
-    },
-    assignedPrinters: [
+    fileId: 'file_003',
+    status: 'completed',
+    assigned: [
       {
         printerId: 'printer_ghi789',
-        printerName: 'Bambu Speed',
         status: 'completed',
         progress: 100,
-        queuePosition: null,
         startedAt: '2025-11-30T10:30:00Z',
         completedAt: '2025-11-30T12:30:00Z'
       }
     ],
-    status: 'completed',
     createdAt: '2025-11-30T10:00:00Z',
-    estimatedPrintTime: 7200,
-    results: {
-      successCount: 1,
-      failCount: 0,
-      totalFilamentUsed: 45
-    }
+    estimatedPrintTime: 7200
   },
   {
     taskId: 'task_004',
     jobId: 'job_12346',
-    file: {
-      fileId: 'file_004',
-      fileName: 'robot_arm_base.stl',
-      fileSize: 2500000,
-      stlUrl: 'https://storage.firebase.com/stl/robot_arm_base.stl',
-      gcodeUrl: null,
-      thumbnailUrl: 'https://via.placeholder.com/100'
-    },
-    assignedPrinters: [],
+    fileId: 'file_004',
     status: 'pending',
+    assigned: [],
     createdAt: '2025-11-29T09:00:00Z',
-    estimatedPrintTime: 14400,
-    results: {
-      successCount: 0,
-      failCount: 0,
-      totalFilamentUsed: 0
-    }
+    estimatedPrintTime: 14400
   },
   {
     taskId: 'task_005',
     jobId: 'job_12346',
-    file: {
-      fileId: 'file_005',
-      fileName: 'gear_assembly.stl',
-      fileSize: 1800000,
-      stlUrl: 'https://storage.firebase.com/stl/gear_assembly.stl',
-      gcodeUrl: 'https://storage.firebase.com/gcode/gear_assembly.gcode',
-      thumbnailUrl: 'https://via.placeholder.com/100'
-    },
-    assignedPrinters: [
+    fileId: 'file_005',
+    status: 'failed',
+    assigned: [
       {
         printerId: 'printer_jkl012',
-        printerName: 'Voron Beast',
-        status: 'error',
+        status: 'printing',
         progress: 23,
-        queuePosition: null,
         startedAt: '2025-11-30T08:00:00Z',
         completedAt: null
       }
     ],
-    status: 'failed',
     createdAt: '2025-11-29T09:00:00Z',
-    estimatedPrintTime: 10800,
-    results: {
-      successCount: 0,
-      failCount: 1,
-      totalFilamentUsed: 25
-    }
+    estimatedPrintTime: 10800
+  },
+  {
+    taskId: 'task_006',
+    jobId: 'job_12346',
+    fileId: 'file_006',
+    status: 'pending',
+    assigned: [],
+    createdAt: '2025-11-29T09:00:00Z',
+    estimatedPrintTime: 3600
+  },
+  {
+    taskId: 'task_007',
+    jobId: 'job_12346',
+    fileId: 'file_007',
+    status: 'pending',
+    assigned: [],
+    createdAt: '2025-11-29T09:00:00Z',
+    estimatedPrintTime: 1800
+  },
+  {
+    taskId: 'task_008',
+    jobId: 'job_12346',
+    fileId: 'file_008',
+    status: 'pending',
+    assigned: [],
+    createdAt: '2025-11-29T09:00:00Z',
+    estimatedPrintTime: 5400
+  },
+  {
+    taskId: 'task_020',
+    jobId: 'job_12350',
+    fileId: 'file_020',
+    status: 'printing',
+    assigned: [
+      {
+        printerId: 'printer_pqr678',
+        status: 'printing',
+        progress: 78,
+        startedAt: '2025-12-02T08:00:00Z',
+        completedAt: null
+      }
+    ],
+    createdAt: '2025-12-02T07:00:00Z',
+    estimatedPrintTime: 9000
+  },
+  {
+    taskId: 'task_021',
+    jobId: 'job_12351',
+    fileId: 'file_021',
+    status: 'printing',
+    assigned: [
+      {
+        printerId: 'printer_vwx234',
+        status: 'printing',
+        progress: 12,
+        startedAt: '2025-12-02T09:00:00Z',
+        completedAt: null
+      }
+    ],
+    createdAt: '2025-12-02T08:30:00Z',
+    estimatedPrintTime: 16200
+  },
+  {
+    taskId: 'task_022',
+    jobId: 'job_12352',
+    fileId: 'file_022',
+    status: 'printing',
+    assigned: [
+      {
+        printerId: 'printer_bcd890',
+        status: 'printing',
+        progress: 34,
+        startedAt: '2025-12-02T06:00:00Z',
+        completedAt: null
+      }
+    ],
+    createdAt: '2025-12-02T05:00:00Z',
+    estimatedPrintTime: 10800
+  },
+  {
+    taskId: 'task_023',
+    jobId: 'job_12353',
+    fileId: 'file_023',
+    status: 'printing',
+    assigned: [
+      {
+        printerId: 'printer_hij456',
+        status: 'printing',
+        progress: 92,
+        startedAt: '2025-12-02T10:00:00Z',
+        completedAt: null
+      }
+    ],
+    createdAt: '2025-12-02T09:30:00Z',
+    estimatedPrintTime: 5400
   }
 ]
 
