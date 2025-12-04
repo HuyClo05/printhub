@@ -12,13 +12,28 @@
         v-model="statusFilter"
         v-model:searchQuery="searchQuery"
       />
-      <PrinterGrid :printers="filteredPrinters" :printTasks="printTasks" @select="handlePrinterSelect" />
+      <PrinterGrid
+        :printers="filteredPrinters"
+        :printTasks="printTasks"
+        @select="handlePrinterSelect"
+        @quickView="handleQuickView"
+      />
     </div>
+
+    <!-- Quick View Popup -->
+    <PrinterQuickView
+      v-if="showQuickView"
+      :printer="selectedPrinter"
+      :printerQueue="selectedPrinterQueue"
+      :printTasks="printTasks"
+      @close="showQuickView = false"
+    />
   </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { db } from '../../firebase/init'
 import { collection, getDocs } from 'firebase/firestore'
 
@@ -26,11 +41,20 @@ import ActionsBar from '@/components/ActionsBar.vue'
 import PrintJobsTable from '@/components/PrintJobsTable.vue'
 import PrinterFilterBar from '@/components/PrinterFilterBar.vue'
 import PrinterGrid from '@/components/PrinterGrid.vue'
+import PrinterQuickView from '@/components/PrinterQuickView.vue'
+
+const router = useRouter()
 
 // Data from Firestore
 const printers = ref([])
 const printJobs = ref([])
 const printTasks = ref([])
+const printerQueues = ref({})
+
+// Quick View state
+const showQuickView = ref(false)
+const selectedPrinter = ref(null)
+const selectedPrinterQueue = ref([])
 
 onMounted(async () => {
   // Get all printers
@@ -53,16 +77,16 @@ onMounted(async () => {
     id: doc.id,
     ...doc.data()
   }))
-})
 
-// Helper to get task progress for a printer
-const getTaskProgress = (currentTaskId) => {
-  if (!currentTaskId) return 0
-  const task = printTasks.value.find(t => t.taskId === currentTaskId)
-  if (!task || !task.assigned || task.assigned.length === 0) return 0
-  // Get the first assigned printer's progress
-  return task.assigned[0]?.progress || 0
-}
+  // Get printer queues for each printer
+  for (const printer of printers.value) {
+    const queueSnapshot = await getDocs(collection(db, `printers/${printer.printerId}/queue`))
+    printerQueues.value[printer.printerId] = queueSnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }))
+  }
+})
 
 // Search and filter state
 const searchQuery = ref('')
@@ -88,7 +112,10 @@ const filteredPrinters = computed(() => {
 // Event handlers
 const handleAction = (actionId) => {
   console.log('Action clicked:', actionId)
-  // TODO: Implement action handlers
+  if (actionId === 'start-job') {
+    router.push('/create-printjob')
+  }
+  // TODO: Implement other action handlers
 }
 
 const handleJobSelect = (job) => {
@@ -99,6 +126,12 @@ const handleJobSelect = (job) => {
 const handlePrinterSelect = (printer) => {
   console.log('Printer selected:', printer)
   // TODO: Navigate to printer details
+}
+
+const handleQuickView = (printer) => {
+  selectedPrinter.value = printer
+  selectedPrinterQueue.value = printerQueues.value[printer.printerId] || []
+  showQuickView.value = true
 }
 </script>
 

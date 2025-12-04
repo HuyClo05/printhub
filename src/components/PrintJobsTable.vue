@@ -26,11 +26,18 @@
         <tr
           v-for="job in paginatedJobs"
           :key="job.jobId"
-          @click="$emit('select', job)"
           class="job-row"
         >
-          <td>{{ job.jobName }}</td>
-          <td>{{ job.createdBy }}</td>
+          <td>
+            <router-link :to="`/jobs/${job.jobId}`" class="table-link">
+              {{ job.jobName }}
+            </router-link>
+          </td>
+          <td>
+            <router-link :to="`/users/${job.createdBy}`" class="table-link">
+              {{ job.createdBy }}
+            </router-link>
+          </td>
           <td>
             <span :class="['status-badge', `status-${job.status}`]">
               {{ job.status }}
@@ -73,6 +80,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
+import { RouterLink } from 'vue-router'
 
 const props = defineProps({
   jobs: {
@@ -180,10 +188,6 @@ const formatDate = (dateString) => {
   cursor: pointer;
 }
 
-.job-row:hover td {
-  background: var(--bg-light);
-}
-
 /* Pagination */
 .pagination {
   display: flex;
@@ -245,6 +249,18 @@ const formatDate = (dateString) => {
 .status-cancelled {
   background: #9e9e9e;
   color: #fff;
+}
+
+/* Table links */
+.table-link {
+  color: var(--primary-color);
+  text-decoration: none;
+  transition: var(--transition);
+}
+
+.table-link:hover {
+  text-decoration: underline;
+  color: var(--text-primary);
 }
 
 .status-failed {

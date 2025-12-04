@@ -11,6 +11,7 @@
       :bedTemp="printer.status?.bedTemp"
       :percentage="getTaskProgress(printer.printerId, printer.currentTaskId)"
       @click="$emit('select', printer)"
+      @quickView="$emit('quickView', printer)"
     />
     <div v-if="printers.length === 0" class="no-printers">
       No printers found
@@ -42,7 +43,7 @@ const getTaskProgress = (printerId, currentTaskId) => {
   return assignment?.progress || 0
 }
 
-defineEmits(['select'])
+defineEmits(['select', 'quickView'])
 </script>
 
 <style scoped>

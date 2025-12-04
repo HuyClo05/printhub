@@ -7,7 +7,7 @@
     <div class="printer-info">
       <div class="printer-header">
         <h2>{{ printerName }}</h2>
-        <span class="status-badge" :class="statusClass">{{ status }}</span>
+        <StatusBadge :status="status" />
       </div>
 
       <div class="printer-stats">
@@ -45,6 +45,7 @@
           caption="Quick View"
           size="auto"
           hoverColor="var(--primary-color)"
+          @click.stop="$emit('quickView')"
         />
       </div>
     </div>
@@ -52,11 +53,13 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
 import ProgressBar from './ProgressBar.vue'
 import ClearButton from './ClearButton.vue'
+import StatusBadge from './StatusBadge.vue'
 
-const props = defineProps({
+defineEmits(['quickView'])
+
+defineProps({
   printerName: {
     type: String,
     default: "Printer-1"
@@ -86,16 +89,6 @@ const props = defineProps({
     default: 0
   }
 })
-
-const statusClass = computed(() => {
-  const status = props.status.toLowerCase()
-  if (status.includes('printing')) return 'status-printing'
-  if (status.includes('ready') || status.includes('idle')) return 'status-ready'
-  if (status.includes('paused')) return 'status-paused'
-  if (status.includes('error') || status.includes('fail')) return 'status-error'
-  if (status.includes('offline')) return 'status-offline'
-  return 'status-ready'
-})
 </script>
 
 <style scoped>
@@ -119,40 +112,6 @@ const statusClass = computed(() => {
   height: 100%;
   object-fit: cover;
   display: block;
-}
-
-.status-badge {
-  top: 10px;
-  left: 10px;
-  padding: 4px 12px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-}
-
-.status-printing {
-  background: #2196f3;
-  color: #fff;
-}
-
-.status-ready {
-  background: #4caf50;
-  color: #fff;
-}
-
-.status-paused {
-  background: #ff9800;
-  color: #000;
-}
-
-.status-error {
-  background: #f44336;
-  color: #fff;
-}
-
-.status-offline {
-  background: #616161;
-  color: #fff;
 }
 
 /* Info Section */

@@ -5,6 +5,7 @@ import { useAuth } from '../../firebase/authentication'
 import HomeView from '../views/HomeView.vue'
 import LoginView from '@/views/LoginView.vue'
 import SignupView from '@/views/SignupView.vue'
+import CreatePrintJobView from '@/views/CreatePrintJobView.vue'
 
 // define route-to-component mapping
 const routes = [
@@ -20,6 +21,11 @@ const routes = [
   {
     path: '/signup',
     component: SignupView
+  },
+  {
+    path: '/create-printjob',
+    component: CreatePrintJobView,
+    meta: { requiresAuth: true }
   }
 ]
 
