@@ -18,17 +18,34 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
-import { printers as printersData } from '@/exampleData/example_printers'
-import { printJobs as printJobsData } from '@/exampleData/example_printJobs'
+import { ref, computed, onMounted } from 'vue'
+import { db } from '../../firebase/init'
+import { collection, getDocs } from 'firebase/firestore'
+
 import ActionsBar from '@/components/ActionsBar.vue'
 import PrintJobsTable from '@/components/PrintJobsTable.vue'
 import PrinterFilterBar from '@/components/PrinterFilterBar.vue'
 import PrinterGrid from '@/components/PrinterGrid.vue'
 
-// Data from data folder
-const printers = ref(printersData)
-const printJobs = ref(printJobsData)
+// Data from Firestore
+const printers = ref([])
+const printJobs = ref([])
+
+onMounted(async () => {
+  // Get all printers
+  const printersSnapshot = await getDocs(collection(db, 'printers'))
+  printers.value = printersSnapshot.docs.map(doc => ({
+    id: doc.id,
+    ...doc.data()
+  }))
+
+  // Get all print jobs
+  const jobsSnapshot = await getDocs(collection(db, 'printJobs'))
+  printJobs.value = jobsSnapshot.docs.map(doc => ({
+    id: doc.id,
+    ...doc.data()
+  }))
+})
 
 // Search and filter state
 const searchQuery = ref('')
@@ -37,15 +54,15 @@ const statusFilter = ref('')
 // Filtered printers based on search and status filter
 const filteredPrinters = computed(() => {
   return printers.value.filter(printer => {
-    const query = searchQuery.value.toLowerCase()
-    const matchesSearch = !query ||
-      printer.printerName.toLowerCase().includes(query) ||
-      printer.model.toLowerCase().includes(query) ||
-      printer.status.state.toLowerCase().includes(query) ||
-      printer.ownerId.toLowerCase().includes(query)
+    const searchTerm = searchQuery.value.toLowerCase()
+    const matchesSearch = !searchTerm ||
+      printer.name?.toLowerCase().includes(searchTerm) ||
+      printer.model?.toLowerCase().includes(searchTerm) ||
+      printer.status?.state?.toLowerCase().includes(searchTerm) ||
+      printer.ownerId?.toLowerCase().includes(searchTerm)
 
     const matchesStatus = !statusFilter.value ||
-      printer.status.state.toLowerCase() === statusFilter.value.toLowerCase()
+      printer.status?.state?.toLowerCase() === statusFilter.value.toLowerCase()
 
     return matchesSearch && matchesStatus
   })

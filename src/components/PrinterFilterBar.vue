@@ -37,7 +37,7 @@ const filters = [
   { label: 'All', value: '' },
   { label: 'Printing', value: 'printing' },
   { label: 'Ready', value: 'ready' },
-  { label: 'Idle', value: 'idle' },
+  { label: 'Paused', value: 'paused' },
   { label: 'Error', value: 'error' },
   { label: 'Offline', value: 'offline' }
 ]

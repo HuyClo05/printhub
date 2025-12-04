@@ -3,13 +3,13 @@
     <PrinterCard
       v-for="printer in printers"
       :key="printer.printerId"
-      :printerName="printer.printerName"
-      :printerSnapshot="printer.status.webcam"
-      :currentPrintJob="printer.currentTask?.fileName || ''"
-      :status="printer.status.state"
-      :nozzleTemp="printer.status.nozzleTemp"
-      :bedTemp="printer.status.bedTemp"
-      :percentage="printer.currentTask?.progress || 0"
+      :printerName="printer.name"
+      :printerSnapshot="printer.status?.webcam"
+      :currentPrintJob="printer.currentTaskId || ''"
+      :status="printer.status?.state"
+      :nozzleTemp="printer.status?.nozzleTemp"
+      :bedTemp="printer.status?.bedTemp"
+      :percentage="0"
       @click="$emit('select', printer)"
     />
     <div v-if="printers.length === 0" class="no-printers">
