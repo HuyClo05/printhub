@@ -13,8 +13,36 @@ async function addData() {
 
   console.log('\nAdding printers...')
   for (const printer of data.printers) {
-    await setDoc(doc(db, "printers", printer.printerId), printer)
+;    // Extract presets to save as subcollections
+    const { printerPresets, filamentPresets, processPresets, ...printerDoc } = printer
+
+    // Save printer document (without preset arrays)
+    await setDoc(doc(db, "printers", printer.printerId), printerDoc)
     console.log(`Added printer: ${printer.name}`)
+
+    // Save printerPresets as subcollection: printers/{printerId}/printerPresets/{presetId}
+    if (printerPresets) {
+      for (const preset of printerPresets) {
+        await setDoc(doc(db, "printers", printer.printerId, "printerPresets", preset.id), preset)
+        console.log(`  Added printerPreset: ${preset.name}`)
+      }
+    }
+
+    // Save filamentPresets as subcollection: printers/{printerId}/filamentPresets/{presetId}
+    if (filamentPresets) {
+      for (const preset of filamentPresets) {
+        await setDoc(doc(db, "printers", printer.printerId, "filamentPresets", preset.id), preset)
+        console.log(`  Added filamentPreset: ${preset.name}`)
+      }
+    }
+
+    // Save processPresets as subcollection: printers/{printerId}/processPresets/{presetId}
+    if (processPresets) {
+      for (const preset of processPresets) {
+        await setDoc(doc(db, "printers", printer.printerId, "processPresets", preset.id), preset)
+        console.log(`  Added processPreset: ${preset.name}`)
+      }
+    }
   }
 
   // Add printer queues (subcollection)
