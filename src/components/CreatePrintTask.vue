@@ -7,121 +7,12 @@
       </div>
 
       <!-- Editor To All Print Profile -->
-      <div class="section preset-editor">
-        <h3>Editor To All Print Profile</h3>
-        <div class="preset-tabs">
-          <button
-            v-for="tab in presetTabs"
-            :key="tab.id"
-            class="preset-tab"
-            :class="{ active: activeTab === tab.id }"
-            @click="activeTab = tab.id"
-          >
-            {{ tab.label }}
-          </button>
-        </div>
-        <div class="editor-content">
-          <div v-if="activeTab === 'quality'" class="editor-fields">
-            <div class="field-row">
-              <label>Layer Height</label>
-              <input type="number" v-model="globalSettings.quality.layerHeight" step="0.05" /> mm
-            </div>
-            <div class="field-row">
-              <label>First Layer Height</label>
-              <input type="number" v-model="globalSettings.quality.firstLayerHeight" step="0.05" /> mm
-            </div>
-            <div class="field-row">
-              <label>Line Width</label>
-              <input type="number" v-model="globalSettings.quality.lineWidth" step="0.05" /> mm
-            </div>
-          </div>
-          <div v-else-if="activeTab === 'strength'" class="editor-fields">
-            <div class="field-row">
-              <label>Infill Density</label>
-              <input type="number" v-model="globalSettings.strength.infillDensity" min="0" max="100" /> %
-            </div>
-            <div class="field-row">
-              <label>Infill Pattern</label>
-              <select v-model="globalSettings.strength.infillPattern">
-                <option value="grid">Grid</option>
-                <option value="gyroid">Gyroid</option>
-                <option value="honeycomb">Honeycomb</option>
-                <option value="lines">Lines</option>
-              </select>
-            </div>
-            <div class="field-row">
-              <label>Wall Count</label>
-              <input type="number" v-model="globalSettings.strength.wallCount" min="1" />
-            </div>
-          </div>
-          <div v-else-if="activeTab === 'speed'" class="editor-fields">
-            <div class="field-row">
-              <label>Print Speed</label>
-              <input type="number" v-model="globalSettings.speed.printSpeed" /> mm/s
-            </div>
-            <div class="field-row">
-              <label>Travel Speed</label>
-              <input type="number" v-model="globalSettings.speed.travelSpeed" /> mm/s
-            </div>
-            <div class="field-row">
-              <label>First Layer Speed</label>
-              <input type="number" v-model="globalSettings.speed.firstLayerSpeed" /> mm/s
-            </div>
-          </div>
-          <div v-else-if="activeTab === 'support'" class="editor-fields">
-            <div class="field-row">
-              <label>Enable Support</label>
-              <input type="checkbox" v-model="globalSettings.support.enabled" />
-            </div>
-            <div class="field-row">
-              <label>Support Type</label>
-              <select v-model="globalSettings.support.type" :disabled="!globalSettings.support.enabled">
-                <option value="normal">Normal</option>
-                <option value="tree">Tree</option>
-              </select>
-            </div>
-            <div class="field-row">
-              <label>Support Density</label>
-              <input type="number" v-model="globalSettings.support.density" min="0" max="100" :disabled="!globalSettings.support.enabled" /> %
-            </div>
-          </div>
-          <div v-else-if="activeTab === 'mm'" class="editor-fields">
-            <div class="field-row">
-              <label>Nozzle Temperature</label>
-              <input type="number" v-model="globalSettings.material.nozzleTemp" /> °C
-            </div>
-            <div class="field-row">
-              <label>Bed Temperature</label>
-              <input type="number" v-model="globalSettings.material.bedTemp" /> °C
-            </div>
-            <div class="field-row">
-              <label>Retraction Distance</label>
-              <input type="number" v-model="globalSettings.material.retractionDistance" step="0.1" /> mm
-            </div>
-          </div>
-          <div v-else-if="activeTab === 'others'" class="editor-fields">
-            <div class="field-row">
-              <label>Brim</label>
-              <input type="checkbox" v-model="globalSettings.others.brim" />
-            </div>
-            <div class="field-row">
-              <label>Raft</label>
-              <input type="checkbox" v-model="globalSettings.others.raft" />
-            </div>
-            <div class="field-row">
-              <label>Skirt Loops</label>
-              <input type="number" v-model="globalSettings.others.skirtLoops" min="0" />
-            </div>
-          </div>
-        </div>
-        <div class="apply-all-btn">
-          <ClearButton
-            caption="Apply To All Printers"
-            size="auto"
-            hoverColor="var(--primary-color)"
-            @click="applyToAllPrinters"
-          />
-        </div>
+      <div class="section">
+        <PrintProfileEditor
+          :settings="globalSettings"
+          title="Editor To All Print Profile"
+          @apply="applyToAllPrinters"
+        />
       </div>
 
       <!-- Print Profile Selector -->
@@ -146,16 +37,16 @@
           <div class="printer-cards-grid">
             <div
               v-for="printer in getFilteredPrinters(printerType)"
-              :key="printer.id"
+              :key="printer.printerId || printer.id"
               class="printer-profile-card"
-              :class="{ selected: isProfileSelected(printer.id) }"
+              :class="{ selected: isProfileSelected(printer.printerId || printer.id) }"
               @click="selectPrinterProfile(printer)"
             >
               <div class="printer-card-name">{{ printer.name }}</div>
               <div class="preset-selectors">
                 <div class="preset-select">
                   <label>Printer Preset</label>
-                  <select v-model="printerProfiles[printer.id].printerPreset" @click.stop>
+                  <select v-model="printerProfiles[printer.printerId || printer.id].printerPreset" @click.stop>
                     <option value="">Select...</option>
                     <option v-for="preset in printer.printerPresets" :key="preset.id" :value="preset.id">
                       {{ preset.name }}
@@ -164,7 +55,7 @@
                 </div>
                 <div class="preset-select">
                   <label>Process Preset</label>
-                  <select v-model="printerProfiles[printer.id].processPreset" @click.stop>
+                  <select v-model="printerProfiles[printer.printerId || printer.id].processPreset" @click.stop>
                     <option value="">Select...</option>
                     <option v-for="preset in printer.processPresets" :key="preset.id" :value="preset.id">
                       {{ preset.name }}
@@ -173,7 +64,7 @@
                 </div>
                 <div class="preset-select">
                   <label>Filament Preset</label>
-                  <select v-model="printerProfiles[printer.id].filamentPreset" @click.stop>
+                  <select v-model="printerProfiles[printer.printerId || printer.id].filamentPreset" @click.stop>
                     <option value="">Select...</option>
                     <option v-for="preset in printer.filamentPresets" :key="preset.id" :value="preset.id">
                       {{ preset.name }}
@@ -207,9 +98,8 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
-import { db } from '../../firebase/init'
-import { collection, getDocs } from 'firebase/firestore'
 import ClearButton from '@/components/ClearButton.vue'
+import PrintProfileEditor from '@/components/PrintProfileEditor.vue'
 
 const props = defineProps({
   task: {
@@ -227,18 +117,6 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['close', 'save'])
-
-// Preset tabs
-const presetTabs = [
-  { id: 'quality', label: 'Quality' },
-  { id: 'strength', label: 'Strength' },
-  { id: 'speed', label: 'Speed' },
-  { id: 'support', label: 'Support' },
-  { id: 'mm', label: 'MM' },
-  { id: 'others', label: 'Others' }
-]
-
-const activeTab = ref('quality')
 
 // Global settings that apply to all printers
 const globalSettings = reactive({
@@ -282,6 +160,7 @@ const printerProfiles = reactive({})
 // Fetch data on mount
 onMounted(async () => {
   // Filter printers to only show selected ones
+  // Presets are stored directly in the printer document as arrays
   filteredPrinters.value = props.printers
     .filter(printer => {
       const printerId = printer.printerId || printer.id
@@ -289,9 +168,10 @@ onMounted(async () => {
     })
     .map(printer => ({
       ...printer,
-      printerPresets: [],
-      processPresets: [],
-      filamentPresets: []
+      // Use existing presets from printer document, or empty arrays as fallback
+      printerPresets: printer.printerPresets || [],
+      processPresets: printer.processPresets || [],
+      filamentPresets: printer.filamentPresets || []
     }))
 
   // Group printers by type
@@ -309,7 +189,8 @@ onMounted(async () => {
     typeMap[typeName].printers.push(printer)
 
     // Initialize printer profile settings
-    printerProfiles[printer.id] = {
+    const printerId = printer.printerId || printer.id
+    printerProfiles[printerId] = {
       printerPreset: '',
       processPreset: '',
       filamentPreset: '',
@@ -318,25 +199,6 @@ onMounted(async () => {
   })
 
   printerTypes.value = Object.values(typeMap)
-
-  // Fetch presets for each printer
-  for (const printer of filteredPrinters.value) {
-    try {
-      // Get printer presets
-      const printerPresetsSnap = await getDocs(collection(db, `printers/${printer.id}/printerPresets`))
-      printer.printerPresets = printerPresetsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }))
-
-      // Get process presets
-      const processPresetsSnap = await getDocs(collection(db, `printers/${printer.id}/processPresets`))
-      printer.processPresets = processPresetsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }))
-
-      // Get filament presets
-      const filamentPresetsSnap = await getDocs(collection(db, `printers/${printer.id}/filamentPresets`))
-      printer.filamentPresets = filamentPresetsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }))
-    } catch (error) {
-      console.log(`No presets found for printer ${printer.id}`)
-    }
-  }
 })
 
 // Methods
@@ -349,10 +211,6 @@ const getFilteredPrinters = (printerType) => {
 
 const isProfileSelected = (printerId) => {
   return props.selectedPrinterIds.includes(printerId)
-}
-
-const selectPrinterProfile = (printer) => {
-  // Toggle selection or just highlight
 }
 
 const applyToAllPrinters = () => {
@@ -418,14 +276,12 @@ const saveTask = () => {
   font-size: 1.5rem;
   cursor: pointer;
   padding: 0;
-  line-height: 1;
 }
 
 .close-btn:hover {
   color: var(--text-primary);
 }
 
-/* Section */
 .section {
   background: var(--bg-light);
   border: 2px solid var(--border-color);
@@ -434,84 +290,13 @@ const saveTask = () => {
 }
 
 .section h3 {
-  margin: 0 0 1rem 0;
+  margin: 0 0 1rem;
   color: var(--text-primary);
   font-size: 1rem;
   padding-bottom: 0.5rem;
   border-bottom: 2px solid var(--primary-color);
 }
 
-/* Preset Editor */
-.preset-tabs {
-  display: flex;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-  flex-wrap: wrap;
-}
-
-.preset-tab {
-  padding: 0.5rem 1rem;
-  background: var(--bg-darker);
-  border: 1px solid var(--border-color);
-  color: var(--text-secondary);
-  cursor: pointer;
-  font-size: 0.85rem;
-}
-
-.preset-tab.active {
-  background: var(--primary-color);
-  color: #000;
-  border-color: var(--primary-color);
-}
-
-.editor-content {
-  background: var(--bg-darker);
-  padding: 1rem;
-  border: 1px solid var(--border-color);
-  margin-bottom: 1rem;
-}
-
-.editor-fields {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.field-row {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.field-row label {
-  flex: 0 0 150px;
-  color: var(--text-secondary);
-  font-size: 0.85rem;
-}
-
-.field-row input[type="number"],
-.field-row input[type="text"],
-.field-row select {
-  flex: 1;
-  max-width: 150px;
-  padding: 0.4rem 0.6rem;
-  background: var(--bg-light);
-  border: 1px solid var(--border-color);
-  color: var(--text-primary);
-  font-size: 0.85rem;
-}
-
-.field-row input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
-}
-
-.apply-all-btn {
-  display: flex;
-  justify-content: flex-end;
-}
-
-/* Profile Selector */
 .printer-type-section {
   background: var(--bg-darker);
   border: 1px solid var(--border-color);
@@ -519,7 +304,7 @@ const saveTask = () => {
 }
 
 .printer-type-header {
-  background: #8bc34a;
+  background: var(--primary-color);
   padding: 0.5rem 1rem;
   font-weight: 600;
   color: #000;
@@ -548,7 +333,7 @@ const saveTask = () => {
 }
 
 .printer-profile-card {
-  background: #5c9bd5;
+  background: var(--bg-light);
   border: 2px solid var(--border-color);
   padding: 0.75rem;
   cursor: pointer;
@@ -556,15 +341,16 @@ const saveTask = () => {
 
 .printer-profile-card.selected {
   border-color: var(--primary-color);
+  background: rgba(0, 188, 212, 0.15);
 }
 
 .printer-card-name {
   font-weight: 600;
-  color: #000;
+  color: var(--text-primary);
   text-align: center;
   margin-bottom: 0.75rem;
   padding-bottom: 0.5rem;
-  border-bottom: 1px solid rgba(0,0,0,0.2);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .preset-selectors {
@@ -581,17 +367,17 @@ const saveTask = () => {
 
 .preset-select label {
   font-size: 0.7rem;
-  color: rgba(0,0,0,0.7);
+  color: var(--text-secondary);
 }
 
 .preset-select select {
   padding: 0.3rem;
-  background: white;
+  background: var(--bg-darker);
   border: 1px solid var(--border-color);
+  color: var(--text-primary);
   font-size: 0.75rem;
 }
 
-/* Footer */
 .modal-footer {
   display: flex;
   justify-content: flex-end;
@@ -601,7 +387,6 @@ const saveTask = () => {
   background: var(--bg-light);
 }
 
-/* Scrollbar */
 .modal-content::-webkit-scrollbar {
   width: 8px;
 }
