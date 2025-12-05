@@ -13,6 +13,17 @@ export const printers = [
       octoeverywhereUrl: 'oe_abc123_share',
       lastSeen: '2025-11-30T14:30:00Z'
     },
+    printerPresets: [
+      { id: 'pp_1', name: 'Ender 3 V2 Default' }
+    ],
+    processPresets: [
+      { id: 'proc_1', name: '0.2mm Standard' },
+      { id: 'proc_2', name: '0.12mm Fine' }
+    ],
+    filamentPresets: [
+      { id: 'fil_1', name: 'Generic PLA' },
+      { id: 'fil_2', name: 'Generic PETG' }
+    ],
     status: {
       state: 'printing',
       nozzleTemp: 210,
@@ -35,6 +46,17 @@ export const printers = [
       octoeverywhereUrl: 'oe_def456_share',
       lastSeen: '2025-11-30T14:25:00Z'
     },
+    printerPresets: [
+      { id: 'pp_2', name: 'Prusa MK3S+ Default' }
+    ],
+    processPresets: [
+      { id: 'proc_3', name: '0.2mm Quality' },
+      { id: 'proc_4', name: '0.15mm Detail' }
+    ],
+    filamentPresets: [
+      { id: 'fil_3', name: 'Prusament PLA' },
+      { id: 'fil_4', name: 'Prusament PETG' }
+    ],
     status: {
       state: 'ready',
       nozzleTemp: 25,
@@ -57,6 +79,17 @@ export const printers = [
       octoeverywhereUrl: 'oe_ghi789_share',
       lastSeen: '2025-11-30T14:20:00Z'
     },
+    printerPresets: [
+      { id: 'pp_3', name: 'X1C 0.4mm Nozzle' }
+    ],
+    processPresets: [
+      { id: 'proc_5', name: '0.2mm Speed' },
+      { id: 'proc_6', name: '0.08mm Ultra Fine' }
+    ],
+    filamentPresets: [
+      { id: 'fil_5', name: 'Bambu PLA Basic' },
+      { id: 'fil_6', name: 'Bambu ABS' }
+    ],
     status: {
       state: 'ready',
       nozzleTemp: 23,
@@ -79,6 +112,16 @@ export const printers = [
       octoeverywhereUrl: 'oe_jkl012_share',
       lastSeen: '2025-11-30T10:00:00Z'
     },
+    printerPresets: [
+      { id: 'pp_4', name: 'Voron 2.4 350mm' }
+    ],
+    processPresets: [
+      { id: 'proc_7', name: '0.2mm Fast' }
+    ],
+    filamentPresets: [
+      { id: 'fil_7', name: 'ABS' },
+      { id: 'fil_8', name: 'ASA' }
+    ],
     status: {
       state: 'error',
       nozzleTemp: 185,
@@ -101,6 +144,15 @@ export const printers = [
       octoeverywhereUrl: 'oe_mno345_share',
       lastSeen: '2025-11-28T08:00:00Z'
     },
+    printerPresets: [
+      { id: 'pp_5', name: 'K1 Max Default' }
+    ],
+    processPresets: [
+      { id: 'proc_8', name: '0.2mm High Speed' }
+    ],
+    filamentPresets: [
+      { id: 'fil_9', name: 'Hyper PLA' }
+    ],
     status: {
       state: 'offline',
       nozzleTemp: 0,
@@ -123,6 +175,15 @@ export const printers = [
       octoeverywhereUrl: 'oe_pqr678_share',
       lastSeen: '2025-12-02T09:15:00Z'
     },
+    printerPresets: [
+      { id: 'pp_6', name: 'Kobra 2 Max Default' }
+    ],
+    processPresets: [
+      { id: 'proc_9', name: '0.2mm Standard' }
+    ],
+    filamentPresets: [
+      { id: 'fil_10', name: 'Generic PLA' }
+    ],
     status: {
       state: 'printing',
       nozzleTemp: 215,
@@ -145,6 +206,15 @@ export const printers = [
       octoeverywhereUrl: 'oe_stu901_share',
       lastSeen: '2025-12-02T08:30:00Z'
     },
+    printerPresets: [
+      { id: 'pp_7', name: 'Neptune 4 Pro Default' }
+    ],
+    processPresets: [
+      { id: 'proc_10', name: '0.2mm Balanced' }
+    ],
+    filamentPresets: [
+      { id: 'fil_11', name: 'PLA+' }
+    ],
     status: {
       state: 'ready',
       nozzleTemp: 24,
@@ -167,6 +237,16 @@ export const printers = [
       octoeverywhereUrl: 'oe_vwx234_share',
       lastSeen: '2025-12-02T10:00:00Z'
     },
+    printerPresets: [
+      { id: 'pp_8', name: 'P1S 0.4mm Nozzle' }
+    ],
+    processPresets: [
+      { id: 'proc_11', name: '0.2mm Standard' },
+      { id: 'proc_12', name: '0.16mm Optimal' }
+    ],
+    filamentPresets: [
+      { id: 'fil_12', name: 'Bambu PLA Matte' }
+    ],
     status: {
       state: 'printing',
       nozzleTemp: 220,
@@ -189,6 +269,16 @@ export const printers = [
       octoeverywhereUrl: 'oe_yza567_share',
       lastSeen: '2025-12-01T22:00:00Z'
     },
+    printerPresets: [
+      { id: 'pp_9', name: 'Prusa MK4 Default' }
+    ],
+    processPresets: [
+      { id: 'proc_13', name: '0.2mm Structural' }
+    ],
+    filamentPresets: [
+      { id: 'fil_13', name: 'Prusament PLA' },
+      { id: 'fil_14', name: 'Prusament ASA' }
+    ],
     status: {
       state: 'ready',
       nozzleTemp: 25,
@@ -211,6 +301,15 @@ export const printers = [
       octoeverywhereUrl: 'oe_bcd890_share',
       lastSeen: '2025-12-02T07:45:00Z'
     },
+    printerPresets: [
+      { id: 'pp_10', name: 'SV07 Plus Default' }
+    ],
+    processPresets: [
+      { id: 'proc_14', name: '0.2mm Draft' }
+    ],
+    filamentPresets: [
+      { id: 'fil_15', name: 'PLA' }
+    ],
     status: {
       state: 'paused',
       nozzleTemp: 200,
@@ -233,6 +332,15 @@ export const printers = [
       octoeverywhereUrl: 'oe_efg123_share',
       lastSeen: '2025-11-25T16:00:00Z'
     },
+    printerPresets: [
+      { id: 'pp_11', name: 'Ender 5 S1 Default' }
+    ],
+    processPresets: [
+      { id: 'proc_15', name: '0.2mm Normal' }
+    ],
+    filamentPresets: [
+      { id: 'fil_16', name: 'Generic PLA' }
+    ],
     status: {
       state: 'offline',
       nozzleTemp: 0,
@@ -255,6 +363,15 @@ export const printers = [
       octoeverywhereUrl: 'oe_hij456_share',
       lastSeen: '2025-12-02T10:30:00Z'
     },
+    printerPresets: [
+      { id: 'pp_12', name: 'Adventurer 5M Pro Default' }
+    ],
+    processPresets: [
+      { id: 'proc_16', name: '0.2mm Fast' }
+    ],
+    filamentPresets: [
+      { id: 'fil_17', name: 'FlashForge PLA' }
+    ],
     status: {
       state: 'printing',
       nozzleTemp: 205,

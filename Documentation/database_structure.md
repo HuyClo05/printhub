@@ -50,6 +50,12 @@ PrintHub uses Firebase Firestore (NoSQL) to store data. The structure follows th
     lastSeen
   }
 
+  printerPresets: []
+
+  processPresets: []
+
+  filamentPresets: []
+
   status: {
     state,              // printing, ready, paused, error, offline
     nozzleTemp,
