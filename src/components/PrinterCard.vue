@@ -1,7 +1,7 @@
 <template>
   <div class="printer-card">
     <div class="snapshot-container">
-      <img :src="printerSnapshot" alt="Printer snapshot" />
+      <img :src="imageSource" alt="Printer snapshot" />
     </div>
 
     <div class="printer-info">
@@ -53,20 +53,26 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
 import ProgressBar from './ProgressBar.vue'
 import ClearButton from './ClearButton.vue'
 import StatusBadge from './StatusBadge.vue'
+import ender3Image from '@/assets/images/Ender-3Size.jpg'
+import printerImage from '@/assets/images/images.jpg'
 
 defineEmits(['quickView'])
 
-defineProps({
+// Default images array
+const defaultImages = [ender3Image, printerImage]
+
+const props = defineProps({
   printerName: {
     type: String,
     default: "Printer-1"
   },
   printerSnapshot: {
     type: String,
-    default: "https://via.placeholder.com/260"
+    default: null
   },
   currentPrintTask: {
     type: String,
@@ -88,6 +94,17 @@ defineProps({
     type: Number,
     default: 0
   }
+})
+
+// Use local images instead of placeholder URLs
+const imageSource = computed(() => {
+  // If no snapshot or it's a placeholder URL, use local images
+  if (!props.printerSnapshot || props.printerSnapshot.includes('placeholder')) {
+    // Use printer name to consistently pick an image (not random each render)
+    const index = props.printerName.length % defaultImages.length
+    return defaultImages[index]
+  }
+  return props.printerSnapshot
 })
 </script>
 
