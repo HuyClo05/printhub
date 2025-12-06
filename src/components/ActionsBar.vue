@@ -20,9 +20,7 @@ defineEmits(['action'])
 
 const actions = [
   { id: 'start-job', caption: 'Start A Print Job' },
-  { id: 'add-connection', caption: 'Add a Printer Connection' },
-  { id: 'add-printer-profile', caption: 'Add A Printer Profile' },
-  { id: 'add-print-profile', caption: 'Add A Print Profile' }
+  { id: 'add-printer', caption: 'Add a Printer' }
 ]
 </script>
 

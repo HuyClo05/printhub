@@ -12,7 +12,7 @@
         v-model="statusFilter"
         v-model:searchQuery="searchQuery"
       />
-      <PrinterGrid
+;      <PrinterGrid
         :printers="filteredPrinters"
         :printTasks="printTasks"
         @select="handlePrinterSelect"
@@ -28,6 +28,13 @@
       :printTasks="printTasks"
       @close="showQuickView = false"
     />
+
+    <!-- Add Printer Popup -->
+    <AddPrinter
+      v-if="showAddPrinter"
+      @close="showAddPrinter = false"
+      @add="handleAddPrinter"
+    />
   </div>
 </template>
 
@@ -42,8 +49,12 @@ import PrintJobsTable from '@/components/PrintJobsTable.vue'
 import PrinterFilterBar from '@/components/PrinterFilterBar.vue'
 import PrinterGrid from '@/components/PrinterGrid.vue'
 import PrinterQuickView from '@/components/PrinterQuickView.vue'
+import AddPrinter from '@/components/AddPrinter.vue'
+import { addPrinter } from '@/services/printerService'
+import { useAuth } from '../../firebase/authentication'
 
 const router = useRouter()
+const { user } = useAuth()
 
 // Data from Firestore
 const printers = ref([])
@@ -55,6 +66,9 @@ const printerQueues = ref({})
 const showQuickView = ref(false)
 const selectedPrinter = ref(null)
 const selectedPrinterQueue = ref([])
+
+// Add Printer state
+const showAddPrinter = ref(false)
 
 onMounted(async () => {
   // Get all printers
@@ -114,8 +128,23 @@ const handleAction = (actionId) => {
   console.log('Action clicked:', actionId)
   if (actionId === 'start-job') {
     router.push('/create-printjob')
+  } else if (actionId === 'add-printer') {
+    showAddPrinter.value = true
   }
-  // TODO: Implement other action handlers
+}
+
+const handleAddPrinter = async (printerData) => {
+  try {
+    const result = await addPrinter(printerData, user.value?.uid || 'anonymous')
+    console.log('Printer added:', result)
+
+    // Add to local printers list
+    printers.value.push(result.printer)
+
+    showAddPrinter.value = false
+  } catch (error) {
+    console.error('Error adding printer:', error)
+  }
 }
 
 const handleJobSelect = (job) => {
