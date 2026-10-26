@@ -1,5 +1,5 @@
 {
-  "name": "printhub",
+  "name": "printhub-frontend",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -10,30 +10,26 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "lint:oxlint": "oxlint . --fix -D correctness --ignore-path .gitignore",
-    "lint:eslint": "eslint . --fix --cache",
-    "lint": "run-s lint:*"
+    "lint": "vite build",
+    "test:workspace": "node tests/workspace-smoke.mjs",
+    "test:geometry": "node tests/geometry-smoke.mjs",
+    "test:performance": "node tests/performance-smoke.mjs",
+    "test:live": "node tests/live-self-hosted.mjs"
   },
   "dependencies": {
-    "dotenv": "^17.2.3",
-    "firebase": "^12.6.0",
-    "firebase-admin": "^13.6.0",
-    "vue": "^3.5.22",
-    "vue-router": "^4.6.3"
+    "fflate": "^0.8.2",
+    "occt-import-js": "^0.0.23",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "three": "^0.186.0",
+    "three-bvh-csg": "^0.0.18",
+    "three-mesh-bvh": "^0.9.8"
   },
   "devDependencies": {
-    "@eslint/js": "^9.37.0",
-    "@vitejs/plugin-vue": "^6.0.1",
+    "@vitejs/plugin-react": "^5.0.4",
     "autoprefixer": "^10.4.21",
     "eslint": "^9.39.1",
-    "eslint-plugin-oxlint": "~1.23.0",
-    "eslint-plugin-vue": "~10.5.0",
-    "globals": "^16.4.0",
-    "npm-run-all2": "^8.0.4",
-    "oxlint": "~1.23.0",
-    "postcss": "^8.5.6",
-    "tailwindcss": "^4.1.16",
-    "vite": "^7.1.11",
-    "vite-plugin-vue-devtools": "^8.0.3"
+    "playwright": "^1.64.1",
+    "vite": "^7.1.11"
   }
 }

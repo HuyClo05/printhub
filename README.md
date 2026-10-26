@@ -1,112 +1,61 @@
-# PrintHub
+# PrintHub Frontend
 
-A web-based 3D printing platform that integrates open-source slicers with remote printer management.
+React/Vite slicing workspace for self-hosted PrintHub.
 
-## Features
+It provides:
 
-- **User Authentication** - Secure signup and login with Firebase Authentication
-- **Username or Email Login** - Flexible login options for user convenience
-- **Password Security** - Strong password requirements with real-time validation
-- **Dark Theme UI** - Modern, eye-friendly interface
+- Keycloak Authorization Code + PKCE login;
+- visible authenticated-user information;
+- PostgreSQL/object-storage health status;
+- Keycloak logout;
+- multi-plate preparation, STL/OBJ/3MF/AMF/STEP imports and manual transforms;
+- project save/open, account-specific browser autosave and undo/redo;
+- immutable preset editing, per-object settings, painting, geometry tools and calibration models;
+- signed uploads, slice cancellation/retry, stored models and job history;
+- worker-parsed, orbitable 3D G-code preview with layer/move playback;
+- printer-agent pairing, live telemetry, camera snapshots and confirmed print controls.
 
-## Prerequisites
+The Compose build receives its `VITE_OIDC_*` values from the project-level
+`.ph_env` file. Do not put secrets in the React bundle.
 
-- Node.js (v16 or higher)
-- npm or yarn
-- Python 3.13+ (for backend)
-- Firebase project with Authentication and Firestore enabled
+## Local development
 
-## Setup Instructions
-
-### 1. Clone the Repository
-
-```bash
-git clone https://github.com/HuyClo05/printhub.git
-cd printhub
-```
-
-### 2. Install Frontend Dependencies
-
-```bash
+```sh
 npm install
-```
-
-### 3. Install Backend Dependencies
-
-```bash
-pip install -r requirements.txt
-```
-
-### 4. Configure Firebase
-
-Create a `.env` file in the root directory with your Firebase credentials:
-
-```env
-VITE_FIREBASE_API_KEY=your_api_key_here
-VITE_FIREBASE_AUTH_DOMAIN=your_auth_domain_here
-VITE_FIREBASE_PROJECT_ID=your_project_id_here
-VITE_FIREBASE_STORAGE_BUCKET=your_storage_bucket_here
-VITE_FIREBASE_MESSAGING_SENDER_ID=your_messaging_sender_id_here
-VITE_FIREBASE_APP_ID=your_app_id_here
-VITE_FIREBASE_MEASUREMENT_ID=your_measurement_id_here
-```
-
-You can get these values from your Firebase Console:
-
-1. Go to Project Settings
-2. Scroll down to "Your apps"
-3. Select your web app or create a new one
-4. Copy the configuration values
-
-### 5. Run the Development Server
-
-**Frontend:**
-
-```bash
 npm run dev
 ```
 
-The app will be available at `http://localhost:5173`
+For the self-hosted stack, start from the repository root:
 
-**Backend (optional, for future features):**
-
-```bash
-python run.py
+```fish
+fish scripts/start-local.fish --detach
 ```
 
-## Project Structure
+The startup script rebuilds the API, frontend and private slicer service, then
+applies migration `006_workspace_printers`. Do not delete existing database volumes.
 
+See [Using PrintHub](../Documentation/using-printhub.md) for usage,
+tests, agent setup and current limitations. See [scripts/README.md](../scripts/README.md)
+for what each stack script does.
+
+## Browser regression checks
+
+With Vite running on port 5174 in another terminal:
+
+```sh
+npm ci
+npx playwright install chromium
+npm run dev -- --port 5174
 ```
-printhub/
-├── src/
-│   ├── components/     # Vue components
-│   ├── views/          # Page views
-│   ├── router/         # Vue Router configuration
-│   └── assets/         # Static assets
-├── firebase/           # Firebase configuration
-├── server/             # Python backend (Flask)
-├── public/             # Public static files
-└── .env                # Environment variables (create this)
+
+```sh
+npm run test:workspace
+npm run test:geometry
 ```
 
-## Security Notes
+These checks mock application API responses and never start a physical print.
+Set `PRINTHUB_TEST_URL` for a different **Vite** URL. Optionally set
+`PRINTHUB_STEP_FIXTURE=/absolute/path/model.step` for a real STEP/WASM import check.
 
-- Never commit `.env` files to version control
-- Firebase client-side API keys are safe to expose (protected by Security Rules)
-- Ensure Firebase Security Rules are properly configured in your Firebase Console
-
-## Future Features
-
-- STL file upload with drag-and-drop
-- OrcaSlicer API integration
-- OctoEverywhere printer connectivity
-- Real-time print monitoring
-- Printer management dashboard
-
-## License
-
-Private repository - all rights reserved.
-
-## Contact
-
-For questions or issues, contact the repository owner.
+To verify production loading boundaries, run `npm run build`, start
+`npm run preview`, then run `npm run test:performance` in another terminal.
