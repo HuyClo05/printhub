@@ -1,0 +1,179 @@
+name: printhub
+
+services:
+  postgres:
+    # This volume was initialized with PostgreSQL 17. Keep the server major
+    # version aligned with the existing data directory.
+    image: docker.io/library/postgres:17-alpine
+    # Loopback-only access for local DBeaver; no LAN/public database exposure.
+    ports:
+      - "127.0.0.1:5433:5432"
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-printhub}
+      POSTGRES_USER: ${POSTGRES_USER:-printhub}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - printhub
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-printhub} -d $${POSTGRES_DB:-printhub}"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.3.3
+    command: ["start-dev", "--import-realm", "--http-port=8080"]
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN:-admin}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-change-me}
+      KC_HTTP_ENABLED: "true"
+      KC_HOSTNAME: localhost
+      KC_HOSTNAME_STRICT: "false"
+      KC_PROXY_HEADERS: xforwarded
+    volumes:
+      - ./keycloak/printhub-realm.json:/opt/keycloak/data/import/printhub-realm.json:ro
+      - keycloak-data:/opt/keycloak/data
+    networks:
+      - printhub
+
+  seaweedfs:
+    image: docker.io/chrislusf/seaweedfs:latest
+    command: ["mini", "-dir=/data"]
+    environment:
+      AWS_ACCESS_KEY_ID: ${S3_ACCESS_KEY:-admin}
+      AWS_SECRET_ACCESS_KEY: ${S3_SECRET_KEY:-secret}
+      S3_BUCKET: ${S3_BUCKET:-printhub-artifacts}
+      S3_EXTERNAL_URL: ${FRONTEND_URL:-http://localhost:8080}
+    volumes:
+      - seaweedfs-data:/data
+    networks:
+      - printhub
+
+  slicer:
+    image: localhost/printhub-slicer:orca2.4.2
+    build:
+      context: ./slicer
+      dockerfile: Containerfile
+    environment:
+      ASYNC_RETENTION_MS: ${SLICER_ASYNC_RETENTION_MS:-3600000}
+      CORS_ORIGINS: ${SLICER_CORS_ORIGINS:-http://api:8000}
+    volumes:
+      - slicer-data:/app/data
+    networks:
+      - printhub
+    restart: unless-stopped
+
+  api:
+    image: localhost/printhub_api:latest
+    build:
+      context: ../../Backend
+      dockerfile: Containerfile
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://printhub:change-me@postgres:5432/printhub}
+      S3_ENDPOINT: ${S3_ENDPOINT:-http://seaweedfs:8333}
+      S3_BUCKET: ${S3_BUCKET:-printhub-artifacts}
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY:-admin}
+      S3_SECRET_KEY: ${S3_SECRET_KEY:-secret}
+      AWS_REGION: ${AWS_REGION:-us-east-1}
+      OIDC_ISSUER: ${OIDC_ISSUER:-http://localhost:8080/realms/printhub}
+      OIDC_JWKS_URL: ${OIDC_JWKS_URL:-http://keycloak:8080/realms/printhub/protocol/openid-connect/certs}
+      OIDC_AUDIENCE: ${OIDC_AUDIENCE:-}
+      SLICER_URL: ${SLICER_URL:-http://slicer:3000}
+      SLICER_DATA_PATH: ${SLICER_DATA_PATH:-/slicer-data}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:8080}
+    command: ["sh", "-c", "python -m alembic upgrade head && python -m uvicorn app.main:app --host 0.0.0.0 --port 8000"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      seaweedfs:
+        condition: service_started
+      keycloak:
+        condition: service_started
+      slicer:
+        condition: service_started
+    volumes:
+      - slicer-data:/slicer-data
+    networks:
+      - printhub
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health/live')\""]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+
+  worker:
+    image: localhost/printhub_api:latest
+    command: ["python", "-m", "app.worker"]
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql+psycopg://printhub:change-me@postgres:5432/printhub}
+      S3_ENDPOINT: ${S3_ENDPOINT:-http://seaweedfs:8333}
+      S3_BUCKET: ${S3_BUCKET:-printhub-artifacts}
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY:-admin}
+      S3_SECRET_KEY: ${S3_SECRET_KEY:-secret}
+      AWS_REGION: ${AWS_REGION:-us-east-1}
+      SLICER_URL: ${SLICER_URL:-http://slicer:3000}
+      SLICER_DATA_PATH: ${SLICER_DATA_PATH:-/slicer-data}
+      SLICER_TIMEOUT_SECONDS: ${SLICER_TIMEOUT_SECONDS:-900}
+      WORKER_LEASE_SECONDS: ${WORKER_LEASE_SECONDS:-90}
+      WORKER_POLL_SECONDS: ${WORKER_POLL_SECONDS:-2}
+      WORKER_RETRY_BASE_SECONDS: ${WORKER_RETRY_BASE_SECONDS:-5}
+    depends_on:
+      api:
+        condition: service_healthy
+      slicer:
+        condition: service_started
+    volumes:
+      - slicer-data:/slicer-data
+    networks:
+      - printhub
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ../../Frontend
+      dockerfile: Containerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL:-/api/v1}
+        VITE_OIDC_ISSUER: ${VITE_OIDC_ISSUER:-http://localhost:8080/realms/printhub}
+        VITE_OIDC_AUTH_URL: ${VITE_OIDC_AUTH_URL:-http://localhost:8080/realms/printhub/protocol/openid-connect/auth}
+        VITE_OIDC_TOKEN_URL: ${VITE_OIDC_TOKEN_URL:-http://localhost:8080/realms/printhub/protocol/openid-connect/token}
+        VITE_OIDC_CLIENT_ID: ${KEYCLOAK_CLIENT_ID:-printhub-frontend}
+        VITE_OIDC_REDIRECT_URI: ${VITE_OIDC_REDIRECT_URI:-http://localhost:8080/}
+        VITE_OIDC_SCOPE: ${VITE_OIDC_SCOPE:-openid email profile}
+    depends_on:
+      api:
+        condition: service_healthy
+    networks:
+      - printhub
+
+  caddy:
+    image: docker.io/library/caddy:2.10-alpine
+    ports:
+      - "8080:80"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      api:
+        condition: service_healthy
+      frontend:
+        condition: service_started
+      keycloak:
+        condition: service_started
+    networks:
+      - printhub
+
+volumes:
+  postgres-data:
+  keycloak-data:
+  seaweedfs-data:
+  slicer-data:
+  caddy-data:
+  caddy-config:
+
+networks:
+  printhub:
+    driver: bridge

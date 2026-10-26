@@ -1,0 +1,46 @@
+# Reuse the base runtime and install an isolated, pinned PrintHub HTTP service.
+FROM ghcr.io/afkfelix/orca-slicer-api:v0.3.0-orca2.3.0
+
+ARG ORCA_VERSION=2.4.2
+ARG TARGETARCH
+
+USER root
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        libopengl0 \
+        libglu1-mesa \
+        libsm6 \
+        libice6 \
+        libx11-6 \
+        libxext6 \
+        libxrender1 \
+        libxfixes3 \
+        libxrandr2 \
+        libxi6 \
+        libxcb1 \
+        libxkbcommon0 \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN set -eux; \
+    if [ "$TARGETARCH" = "arm64" ]; then \
+        asset="OrcaSlicer_Linux_AppImage_Ubuntu2404_aarch64_V${ORCA_VERSION}.AppImage"; \
+    else \
+        asset="OrcaSlicer_Linux_AppImage_Ubuntu2404_V${ORCA_VERSION}.AppImage"; \
+    fi; \
+    mkdir -p /opt/orcaslicer; \
+    curl -fsSL "https://github.com/SoftFever/OrcaSlicer/releases/download/v${ORCA_VERSION}/${asset}" \
+        -o /tmp/orcaslicer.AppImage; \
+    chmod +x /tmp/orcaslicer.AppImage; \
+    cd /opt/orcaslicer; \
+    /tmp/orcaslicer.AppImage --appimage-extract >/dev/null; \
+    rm -f /tmp/orcaslicer.AppImage
+
+ENV ORCASLICER_PATH=/opt/orcaslicer/squashfs-root/AppRun
+
+WORKDIR /opt/printhub-api
+COPY package.json package-lock.json ./
+RUN npm ci --omit=dev
+COPY printhub-server.mjs ./printhub-server.mjs
+ENTRYPOINT ["node", "/opt/printhub-api/printhub-server.mjs"]
+CMD []

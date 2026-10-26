@@ -1,0 +1,38 @@
+:80 {
+    encode gzip
+
+    # Direct, presigned model transfers. Keep the full path and original Host
+    # intact because both are covered by the S3 Signature V4 calculation.
+    handle /printhub-artifacts/* {
+        reverse_proxy seaweedfs:8333
+    }
+
+    handle /api/* {
+        reverse_proxy api:8000
+    }
+
+    handle /health/* {
+        reverse_proxy api:8000
+    }
+
+    # Keycloak needs these paths to serve login pages, scripts, and realm data.
+    handle /realms/* {
+        reverse_proxy keycloak:8080
+    }
+
+    handle /resources/* {
+        reverse_proxy keycloak:8080
+    }
+
+    handle /admin/* {
+        reverse_proxy keycloak:8080
+    }
+
+    handle /js/* {
+        reverse_proxy keycloak:8080
+    }
+
+    handle {
+        reverse_proxy frontend:80
+    }
+}

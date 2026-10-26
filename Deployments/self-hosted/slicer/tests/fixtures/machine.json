@@ -1,0 +1,1 @@
+{"type":"machine","name":"Test machine","from":"system","printable_area":["0x0","200x0","200x200","0x200"],"nozzle_diameter":["0.4"],"printable_height":"200"}

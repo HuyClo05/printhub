@@ -1,0 +1,1 @@
+"""PrintHub backend application package."""

@@ -1,0 +1,39 @@
+# Local self-hosted PrintHub configuration.
+# Copy this file to .ph_env. The real .ph_env is ignored by Git.
+
+POSTGRES_DB=printhub
+POSTGRES_USER=printhub
+POSTGRES_PASSWORD=change-me
+DATABASE_URL=postgresql+psycopg://printhub:change-me@postgres:5432/printhub
+
+S3_ENDPOINT=http://seaweedfs:8333
+S3_BUCKET=printhub-artifacts
+S3_ACCESS_KEY=admin
+S3_SECRET_KEY=secret
+AWS_REGION=us-east-1
+
+SLICER_URL=http://slicer:3000
+SLICER_DATA_PATH=/slicer-data
+SLICER_ASYNC_RETENTION_MS=3600000
+SLICER_CORS_ORIGINS=http://api:8000
+SLICER_TIMEOUT_SECONDS=900
+WORKER_LEASE_SECONDS=90
+WORKER_POLL_SECONDS=2
+WORKER_RETRY_BASE_SECONDS=5
+
+KEYCLOAK_REALM=printhub
+KEYCLOAK_ADMIN=admin
+KEYCLOAK_ADMIN_PASSWORD=change-me
+KEYCLOAK_CLIENT_ID=printhub-frontend
+
+FRONTEND_URL=http://localhost:8080
+OIDC_ISSUER=http://localhost:8080/realms/printhub
+OIDC_JWKS_URL=http://keycloak:8080/realms/printhub/protocol/openid-connect/certs
+OIDC_AUDIENCE=
+
+VITE_API_URL=/api/v1
+VITE_OIDC_ISSUER=http://localhost:8080/realms/printhub
+VITE_OIDC_AUTH_URL=http://localhost:8080/realms/printhub/protocol/openid-connect/auth
+VITE_OIDC_TOKEN_URL=http://localhost:8080/realms/printhub/protocol/openid-connect/token
+VITE_OIDC_REDIRECT_URI=http://localhost:8080/
+VITE_OIDC_SCOPE=openid email profile

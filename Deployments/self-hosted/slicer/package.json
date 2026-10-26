@@ -1,0 +1,8 @@
+{
+  "name": "printhub-orca-service",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": { "test": "node --test tests/service.test.mjs" },
+  "dependencies": { "express": "5.1.0", "multer": "2.4.0" }
+}
