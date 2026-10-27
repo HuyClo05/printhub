@@ -90,6 +90,8 @@ def create_profile_version(
     name: str,
     settings: dict,
     source_bundle_sha256: str | None = None,
+    note: str | None = None,
+    restored_from_id: str | None = None,
 ) -> tuple[SlicerProfileVersion, bool]:
     """Append a version unless the latest version already has identical content."""
 
@@ -125,6 +127,8 @@ def create_profile_version(
         object_key=object_key,
         source_bundle_sha256=source_bundle_sha256,
         created_at=datetime.now(timezone.utc),
+        note=(note or "").strip() or None,
+        restored_from_id=restored_from_id,
     )
     db.add(version)
     db.flush()

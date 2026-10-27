@@ -183,6 +183,44 @@ class WorkspaceTests(unittest.TestCase):
         self.assertEqual(self.client.post("/api/v1/slice-jobs", json=body).status_code, 400)
         self.assertEqual(self.client.get("/api/v1/profiles/bob-presets").status_code, 404)
 
+    def test_profile_history_notes_filters_and_restore(self):
+        def save(settings, note=None):
+            body = {"category": "presets", "name": "Quality", "settings": {"name": "Quality", **settings}, "note": note}
+            response = self.client.post("/api/v1/profiles", json=body)
+            self.assertEqual(response.status_code, 201, response.text)
+            return response.json()
+        with patch("app.profile_versions.put_bytes"), patch("app.profile_versions.install_profile_file"):
+            first = save({"wall_loops": "2"}, "  baseline  ")
+            save({"wall_loops": "4"})
+            self.client.post("/api/v1/profiles", json={"category": "filaments", "name": "PLA", "settings": {"name": "PLA"}})
+            restored = self.client.post(f"/api/v1/profiles/{first['id']}/restore", json={})
+            self.assertEqual(restored.status_code, 201, restored.text)
+            restored = restored.json()
+            self.owner = "bob"
+            self.assertEqual(self.client.post(f"/api/v1/profiles/{first['id']}/restore", json={}).status_code, 404)
+            self.owner = "alice"
+        self.assertEqual(first["note"], "baseline")
+        self.assertEqual((restored["version"], restored["note"], restored["restored_from_id"]), (3, "Restored from v1", first["id"]))
+        self.assertEqual(self.client.get(f"/api/v1/profiles/{restored['id']}").json()["settings"]["wall_loops"], "2")
+        history = self.client.get("/api/v1/profiles", params={"category": "presets", "name": "Quality"}).json()
+        self.assertEqual([row["version"] for row in history], [3, 2, 1])
+
+    def test_resolved_profile_merges_user_and_system_inheritance(self):
+        with Session(self.engine) as db:
+            db.add(SlicerProfileVersion(id="base", owner_id="alice", category="presets", name="Base", version=1, settings={"name": "Base", "inherits": "System", "wall_loops": "3", "top_shell_layers": "4"}, sha256="a" * 64, object_key="private/base", created_at=utc_naive()))
+            db.add(SlicerProfileVersion(id="child", owner_id="alice", category="presets", name="Child", version=1, settings={"name": "Child", "inherits": "Base", "wall_loops": "4"}, sha256="b" * 64, object_key="private/child", created_at=utc_naive()))
+            db.commit()
+        system = {"name": "System", "type": "process", "wall_loops": "2", "top_shell_layers": "3", "line_width": "0.42"}
+        with patch("app.slicing_routes.SlicerClient.resolved_profile", return_value=system) as lookup:
+            response = self.client.get("/api/v1/slicer/profiles/presets/Child/resolved")
+        self.assertEqual(response.status_code, 200, response.text)
+        settings = response.json()["settings"]
+        self.assertEqual((settings["wall_loops"], settings["top_shell_layers"], settings["line_width"], settings["name"]), ("4", "4", "0.42", "Child"))
+        lookup.assert_called_once_with("presets", "System")
+        self.owner = "bob"
+        with patch("app.slicing_routes.SlicerClient.resolved_profile", return_value=None):
+            self.assertEqual(self.client.get("/api/v1/slicer/profiles/presets/Child/resolved").status_code, 404)
+
     def test_process_overrides_are_persisted_in_the_immutable_slice_profile(self):
         _, _, file_id = self.job(status="completed")
         with Session(self.engine) as db:

@@ -29,6 +29,12 @@ function processFamily(name, settings = {}) {
   return source.slice(marker + 1).split(' - ', 1)[0].trim().toLowerCase()
 }
 
+// An edit equals the saved value when it matches what the setting row displays (first array item).
+function sameSetting(value, saved) {
+  if (Array.isArray(value)) return JSON.stringify(value) === JSON.stringify(saved)
+  return String(value) === String((Array.isArray(saved) ? saved[0] : saved) ?? '')
+}
+
 function randomValue() { return crypto.randomUUID() }
 
 function createVerifier() {
@@ -89,6 +95,8 @@ function App() {
   const [selectedFilament, setSelectedFilament] = useState('')
   const [selectedProcess, setSelectedProcess] = useState('')
   const [profileSettings, setProfileSettings] = useState({ printers: {}, filaments: {}, presets: {} })
+  // Resolved values of each selected profile's parent chain, shown wherever the profile itself has no value.
+  const [profileParents, setProfileParents] = useState({ printers: {}, filaments: {}, presets: {} })
   const [workspaceMode, setWorkspaceMode] = useState('prepare')
   const [gcode, setGcode] = useState(null)
   const [gcodeLoading, setGcodeLoading] = useState(false)
@@ -188,12 +196,19 @@ function App() {
       const response = await apiFetch(versions[category] ? `/profiles/${versions[category]}` : `/slicer/profiles/${category}/${encodeURIComponent(name)}`)
       if (!response.ok) throw new Error(`${category} profile details unavailable`)
       const result = await response.json()
-      return [category, name, result.settings]
+      const parentName = result.settings?.inherits
+      const parent = parentName ? await apiFetch(`/slicer/profiles/${category}/${encodeURIComponent(parentName)}/resolved`).then(r => r.ok ? r.json() : null).catch(() => null) : null
+      return [category, name, result.settings, parent?.settings || {}]
     })).then((entries) => {
       if (cancelled) return
       setProfileSettings((current) => {
         const next = { ...current }
         entries.forEach(([category, name, settings]) => { next[category] = { ...next[category], [name]: settings } })
+        return next
+      })
+      setProfileParents((current) => {
+        const next = { ...current }
+        entries.forEach(([category, name, , parent]) => { next[category] = { ...next[category], [name]: parent } })
         return next
       })
     }).catch(error => { if (!cancelled) setProfileError(error.message) })
@@ -639,7 +654,7 @@ function App() {
     return <main className="screen"><section className="card login-card"><p className="eyebrow">PrintHub</p><h1>Sign in</h1><p>Continue with the PrintHub Keycloak identity provider.</p>{authError && <p className="error">{authError}</p>}<button onClick={startLogin} disabled={loggingIn}>{loggingIn ? 'Opening Keycloak…' : 'Continue to Keycloak'}</button></section></main>
   }
 
-  const services = { apiFetch, profiles, refreshProfiles: loadProfiles, filamentSlots, setFilamentSlots, selectedPrinter, job, openJob, downloadJob, printJob: target => { setJob(target); setWorkspaceMode('device') }, importStoredModel, saveProject, openProject: () => projectFileRef.current?.click(), saveProfile, selectVersion, generateCalibration, advancedAction, processOverrides, updateProcess: patch => setProcessOverrides(current => { const next = { ...current }; for (const [key, value] of Object.entries(patch)) { if (value === '') delete next[key]; else next[key] = value } return next }), onError: setSliceError }
+  const services = { apiFetch, displayName, profileVersions: versions, profiles, refreshProfiles: loadProfiles, filamentSlots, setFilamentSlots, selectedPrinter, job, openJob, downloadJob, printJob: target => { setJob(target); setWorkspaceMode('device') }, importStoredModel, saveProject, openProject: () => projectFileRef.current?.click(), saveProfile, selectVersion, generateCalibration, advancedAction, processOverrides, updateProcess: patch => setProcessOverrides(current => { const saved = { ...profileParents.presets[selectedProcess], ...profileSettings.presets[selectedProcess] }; const next = { ...current }; for (const [key, value] of Object.entries(patch)) { if (value === '' || sameSetting(value, saved[key])) delete next[key]; else next[key] = value } return next }), onError: setSliceError }
   return <WorkspaceServices.Provider value={services}><main className="app-screen" data-theme={theme}>
     <input ref={projectFileRef} hidden type="file" accept=".printhub,.json" onChange={openProjectFile} />
     <header className="app-topbar">
@@ -650,7 +665,7 @@ function App() {
     {authError && <div className="app-alert error">{authError}</div>}
     {profileError && <div className="app-alert notice">{profileError}</div>}
     {gcodeError && <div className="app-alert error">{gcodeError}</div>}
-    <Suspense fallback={<div className="workspace-loading" role="status">Loading workspace…</div>}><SlicerWorkspace mode={workspaceMode} onModeChange={setWorkspaceMode} models={models} selectedIds={selectedModelIds} onSelect={selectModel} onUpdateModel={updateModel} onUpdateModels={updateModels} onReorderModels={reorderModels} onAddFiles={addModelFiles} onArrange={arrangeAll} onDeleteModel={deleteModel} onDuplicate={duplicateSelected} onSlice={() => submitSlice()} onSliceAll={sliceAllPlates} onDownloadGcode={downloadGcode} submitting={submitting || queueingAll} job={job} gcodeLoading={gcodeLoading} uploadProgress={uploadProgress} onCancelJob={cancelCurrentJob} previewContent={gcode ? <Suspense fallback={<div className="workspace-loading" role="status">Loading G-code viewer…</div>}><OrcaGCodeViewer gcode={gcode} job={job} onDownload={downloadGcode} plate={previewPlate || plate} models={historicalPreview ? [] : models} /></Suspense> : null} plate={plate} profiles={profiles} selectedPrinter={selectedPrinter} selectedFilament={selectedFilament} selectedProcess={selectedProcess} onPrinterChange={name => { changePrinter(name); setVersions(v => ({ ...v, printers: null })) }} onFilamentChange={name => { setSelectedFilament(name); setVersions(v => ({ ...v, filaments: null })) }} onProcessChange={name => { setSelectedProcess(name); setVersions(v => ({ ...v, presets: null })); setProcessOverrides({}) }} printerSettings={printerSettings} filamentSettings={profileSettings.filaments[selectedFilament]} processSettings={{ ...profileSettings.presets[selectedProcess], ...processOverrides }} error={sliceError} onError={setSliceError} plates={plates} activePlate={activePlate} onSwitchPlate={switchPlate} onAddPlate={addPlate} onRemovePlate={removePlate} onRenamePlate={(id, name) => setPlates(current => current.map(p => p.id === id ? { ...p, name } : p))} /></Suspense>
+    <Suspense fallback={<div className="workspace-loading" role="status">Loading workspace…</div>}><SlicerWorkspace mode={workspaceMode} onModeChange={setWorkspaceMode} models={models} selectedIds={selectedModelIds} onSelect={selectModel} onUpdateModel={updateModel} onUpdateModels={updateModels} onReorderModels={reorderModels} onAddFiles={addModelFiles} onArrange={arrangeAll} onDeleteModel={deleteModel} onDuplicate={duplicateSelected} onSlice={() => submitSlice()} onSliceAll={sliceAllPlates} onDownloadGcode={downloadGcode} submitting={submitting || queueingAll} job={job} gcodeLoading={gcodeLoading} uploadProgress={uploadProgress} onCancelJob={cancelCurrentJob} previewContent={gcode ? <Suspense fallback={<div className="workspace-loading" role="status">Loading G-code viewer…</div>}><OrcaGCodeViewer gcode={gcode} job={job} onDownload={downloadGcode} plate={previewPlate || plate} models={historicalPreview ? [] : models} /></Suspense> : null} plate={plate} profiles={profiles} selectedPrinter={selectedPrinter} selectedFilament={selectedFilament} selectedProcess={selectedProcess} onPrinterChange={name => { changePrinter(name); setVersions(v => ({ ...v, printers: null })) }} onFilamentChange={name => { setSelectedFilament(name); setVersions(v => ({ ...v, filaments: null })) }} onProcessChange={name => { setSelectedProcess(name); setVersions(v => ({ ...v, presets: null })); setProcessOverrides({}) }} printerSettings={printerSettings} filamentSettings={profileSettings.filaments[selectedFilament]} processSettings={{ ...profileSettings.presets[selectedProcess], ...processOverrides }} savedProcessSettings={profileSettings.presets[selectedProcess]} inheritedSettings={{ printers: profileParents.printers[selectedPrinter], filaments: profileParents.filaments[selectedFilament], presets: profileParents.presets[selectedProcess] }} error={sliceError} onError={setSliceError} plates={plates} activePlate={activePlate} onSwitchPlate={switchPlate} onAddPlate={addPlate} onRemovePlate={removePlate} onRenamePlate={(id, name) => setPlates(current => current.map(p => p.id === id ? { ...p, name } : p))} /></Suspense>
   </main></WorkspaceServices.Provider>
 }
 

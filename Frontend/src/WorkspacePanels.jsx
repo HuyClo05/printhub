@@ -76,25 +76,77 @@ export function PrinterPanel() {
   </div>
 }
 
-export function ProfileEditor({ category, name, settings, onClose, onSaved }) {
+// Parent-chain bookkeeping keys that never belong in a child preset.
+const PARENT_ONLY_KEYS = new Set(['name', 'inherits', 'from', 'instantiation', 'setting_id', 'filament_id'])
+
+export function ProfileEditor({ category, name, settings, inherited = {}, saved, onClose, onSaved }) {
   const services = useServices()
-  const versions = useCollection('/profiles', 15000)
   const [draft, setDraft] = useState(() => structuredClone(settings || {})), [search, setSearch] = useState(''), [saveName, setSaveName] = useState(name || ''), [error, setError] = useState(''), [saving, setSaving] = useState(false)
-  const [raw, setRaw] = useState(false), [json, setJson] = useState(JSON.stringify(settings || {}, null, 2)), [selectedVersion, setSelectedVersion] = useState('')
-  const [loadedVersion, setLoadedVersion] = useState(null)
-  const matching = versions.data.filter(v => v.name === name && v.category === category)
+  const [raw, setRaw] = useState(false), [json, setJson] = useState(JSON.stringify(settings || {}, null, 2)), [note, setNote] = useState('')
+  // Compare against the stored preset (not unsaved sidebar overrides); an edit back to the inherited value is not a change.
+  const baseline = saved || settings || {}
+  const isUnsaved = key => key in draft && JSON.stringify(draft[key]) !== JSON.stringify(baseline[key] ?? inherited[key])
+  const unsavedCount = raw ? 0 : Object.keys(draft).filter(isUnsaved).length
   async function save() {
     setSaving(true); setError('')
     try {
       const settings = raw ? JSON.parse(json) : draft
-      const version = await apiJson(services.apiFetch, '/profiles', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ category, name: saveName, settings: { ...settings, name: saveName } }) })
+      const version = await apiJson(services.apiFetch, '/profiles', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ category, name: saveName, settings: { ...settings, name: saveName }, note: note.trim() || null }) })
       await onSaved(category, saveName, settings, version.id); onClose()
     } catch (e) { setError(e.message) } finally { setSaving(false) }
   }
-  async function loadVersion(id) {
-    setSelectedVersion(id)
-    try { const row = await apiJson(services.apiFetch, `/profiles/${id}`); setDraft(row.settings); setJson(JSON.stringify(row.settings, null, 2)); setLoadedVersion(row) } catch (e) { setError(e.message) }
+  return <div className="dialog-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) onClose() }}><section className="settings-dialog real-profile-editor" role="dialog" aria-modal="true" aria-label={`${category} preset editor`}><header className="settings-dialog-header"><h2>Edit {category === 'presets' ? 'process' : category === 'printers' ? 'printer' : 'filament'} preset</h2><button onClick={onClose} aria-label="Close">×</button></header><div className="feature-toolbar"><input value={saveName} onChange={e => setSaveName(e.target.value)} aria-label="Preset name" /><input value={note} onChange={e => setNote(e.target.value)} maxLength={500} placeholder="Version note (optional)" aria-label="Version note" /><button onClick={() => { if (!raw) setJson(JSON.stringify(draft, null, 2)); else { try { setDraft(JSON.parse(json)) } catch (e) { setError(e.message); return } } setRaw(!raw) }}>{raw ? 'Fields' : 'JSON'}</button></div><p className="muted">Saving creates a new version. Change the name to duplicate this preset. Use the history button to compare or restore versions.</p>{error && <p className="error" role="alert">{error}</p>}<input type="search" placeholder="Search setting names" value={search} onChange={e => setSearch(e.target.value)} />
+    <div className="profile-editor-fields">{raw ? <textarea value={json} onChange={e => setJson(e.target.value)} aria-label="Preset JSON" /> : [...Object.entries(draft), ...Object.entries(inherited).filter(([key]) => !(key in draft) && !PARENT_ONLY_KEYS.has(key))].filter(([key]) => key.toLowerCase().includes(search.toLowerCase())).sort(([a], [b]) => a.localeCompare(b)).map(([key, value]) => <label className={`editable-setting${key in draft ? '' : ' inherited'}${isUnsaved(key) ? ' unsaved' : ''}`} key={key} title={key in draft ? undefined : 'Inherited from parent preset'}><span>{key.replaceAll('_', ' ')}</span>{typeof value === 'object' ? <input value={JSON.stringify(value)} onChange={e => { try { setDraft({ ...draft, [key]: JSON.parse(e.target.value) }); setError('') } catch { setError(`Use valid JSON for ${key}, or edit this field in JSON mode.`) } }} /> : <input value={String(value ?? '')} onChange={e => setDraft({ ...draft, [key]: typeof value === 'number' ? Number(e.target.value) : typeof value === 'boolean' ? e.target.value === 'true' : e.target.value })} />}</label>)}</div><footer className="settings-dialog-footer"><button onClick={onClose}>Cancel</button><button onClick={save} disabled={saving}>{saving ? 'Saving…' : `Save new version & apply${unsavedCount ? ` (${unsavedCount} change${unsavedCount === 1 ? '' : 's'})` : ''}`}</button></footer></section></div>
+}
+
+function settingDisplay(value) {
+  if (value === undefined) return '—'
+  return Array.isArray(value) ? value.join(', ') : typeof value === 'object' && value !== null ? JSON.stringify(value) : String(value)
+}
+
+export function PresetHistory({ category, name, currentVersionId, confirmMessage, onClose, onRestored }) {
+  const services = useServices()
+  const versions = useCollection(`/profiles?category=${category}&name=${encodeURIComponent(name)}`, 15000)
+  const [selected, setSelected] = useState([]), [diff, setDiff] = useState(null), [note, setNote] = useState(''), [error, setError] = useState(''), [busy, setBusy] = useState(false)
+  const cache = useRef(new Map())
+  const rows = versions.data
+  const current = currentVersionId || rows[0]?.id
+  async function settingsOf(id) {
+    if (!cache.current.has(id)) cache.current.set(id, (await apiJson(services.apiFetch, `/profiles/${id}`)).settings)
+    return cache.current.get(id)
   }
-  return <div className="dialog-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) onClose() }}><section className="settings-dialog real-profile-editor" role="dialog" aria-modal="true" aria-label={`${category} preset editor`}><header className="settings-dialog-header"><h2>Edit {category === 'presets' ? 'process' : category === 'printers' ? 'printer' : 'filament'} preset</h2><button onClick={onClose} aria-label="Close">×</button></header><div className="feature-toolbar"><input value={saveName} onChange={e => setSaveName(e.target.value)} aria-label="Preset name" /><select value={selectedVersion} onChange={e => loadVersion(e.target.value)}><option value="" disabled>Browse immutable versions</option>{matching.map(v => <option key={v.id} value={v.id}>v{v.version} · {new Date(v.created_at).toLocaleString()}</option>)}</select><button onClick={() => { if (!raw) setJson(JSON.stringify(draft, null, 2)); else { try { setDraft(JSON.parse(json)) } catch (e) { setError(e.message); return } } setRaw(!raw) }}>{raw ? 'Fields' : 'JSON'}</button></div><p className="muted">Saving creates a new immutable version. Change the name to duplicate this preset.</p>{error && <p className="error" role="alert">{error}</p>}<input type="search" placeholder="Search setting names" value={search} onChange={e => setSearch(e.target.value)} />
-    <div className="profile-editor-fields">{raw ? <textarea value={json} onChange={e => setJson(e.target.value)} aria-label="Preset JSON" /> : Object.entries(draft).filter(([key]) => key.toLowerCase().includes(search.toLowerCase())).sort(([a], [b]) => a.localeCompare(b)).map(([key, value]) => <label className="editable-setting" key={key}><span>{key.replaceAll('_', ' ')}</span>{typeof value === 'object' ? <input value={JSON.stringify(value)} onChange={e => { try { setDraft({ ...draft, [key]: JSON.parse(e.target.value) }); setError('') } catch { setError(`Use valid JSON for ${key}, or edit this field in JSON mode.`) } }} /> : <input value={String(value ?? '')} onChange={e => setDraft({ ...draft, [key]: typeof value === 'number' ? Number(e.target.value) : typeof value === 'boolean' ? e.target.value === 'true' : e.target.value })} />}</label>)}</div><footer className="settings-dialog-footer"><button onClick={onClose}>Cancel</button>{loadedVersion && <button onClick={async () => { setSaving(true); try { await onSaved(category, loadedVersion.name, loadedVersion.settings, loadedVersion.id); onClose() } catch(e) { setError(e.message) } finally { setSaving(false) } }} disabled={saving}>Use version {loadedVersion.version}</button>}<button onClick={save} disabled={saving}>{saving ? 'Saving…' : 'Save new version & apply'}</button></footer></section></div>
+  useEffect(() => {
+    setDiff(null)
+    if (selected.length !== 2) return
+    let alive = true
+    // Always show older → newer, whichever order the versions were picked in.
+    const [older, newer] = selected.map(id => rows.find(v => v.id === id)).sort((a, b) => a.version - b.version)
+    Promise.all([settingsOf(older.id), settingsOf(newer.id)]).then(([before, after]) => {
+      if (!alive) return
+      const keys = [...new Set([...Object.keys(before), ...Object.keys(after)])].filter(key => JSON.stringify(before[key]) !== JSON.stringify(after[key])).sort()
+      setDiff({ older, newer, changes: keys.map(key => [key, before[key], after[key]]) })
+    }).catch(e => { if (alive) setError(e.message) })
+    return () => { alive = false }
+  }, [selected.join()])
+  function toggle(id) { setSelected(current => current.includes(id) ? current.filter(v => v !== id) : [...current, id].slice(-2)) }
+  const restoreTarget = selected.length === 1 ? rows.find(v => v.id === selected[0]) : null
+  async function restore() {
+    if (confirmMessage && !confirm(confirmMessage)) return
+    setBusy(true); setError('')
+    try {
+      const version = await apiJson(services.apiFetch, `/profiles/${restoreTarget.id}/restore`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ note: note.trim() || null }) })
+      await onRestored(category, name, await settingsOf(restoreTarget.id), version.id)
+      setSelected([]); setNote(''); versions.refresh()
+    } catch (e) { setError(e.message) } finally { setBusy(false) }
+  }
+  return <div className="dialog-backdrop" onMouseDown={e => { if (e.target === e.currentTarget) onClose() }}><section className="settings-dialog preset-history" role="dialog" aria-modal="true" aria-label={`${name} version history`}>
+    <header className="settings-dialog-header"><h2>History · {name}</h2><button onClick={onClose} aria-label="Close">×</button></header>
+    <p className="muted">Select one version to restore it, or two to compare them. Restoring adds a new version; history is never deleted.</p>
+    {(error || versions.error) && <p className="error" role="alert">{error || versions.error}</p>}
+    <div className="preset-history-body">
+      <ul className="preset-history-list">{rows.map(v => <li key={v.id}><label className={selected.includes(v.id) ? 'selected' : ''}><input type="checkbox" checked={selected.includes(v.id)} onChange={() => toggle(v.id)} /><strong>v{v.version}</strong>{v.id === current && <span className="version-badge">current</span>}<span className="muted">{new Date(v.created_at).toLocaleString()} · {services.displayName || 'You'}</span>{v.note && <em>{v.note}</em>}</label></li>)}{!rows.length && <li className="muted">No versions yet.</li>}</ul>
+      {diff && <div className="preset-history-diff"><h3>v{diff.older.version} → v{diff.newer.version} · {diff.changes.length} changed</h3>{diff.changes.length ? <table><thead><tr><th>Setting</th><th>v{diff.older.version}</th><th>v{diff.newer.version}</th></tr></thead><tbody>{diff.changes.map(([key, before, after]) => <tr key={key}><td>{key.replaceAll('_', ' ')}</td><td className="diff-old">{settingDisplay(before)}</td><td className="diff-new">{settingDisplay(after)}</td></tr>)}</tbody></table> : <p className="muted">These versions have identical settings.</p>}</div>}
+    </div>
+    <footer className="settings-dialog-footer">{restoreTarget && <><input value={note} onChange={e => setNote(e.target.value)} maxLength={500} placeholder={`Note (default: Restored from v${restoreTarget.version})`} aria-label="Restore note" /><button onClick={restore} disabled={busy}>{busy ? 'Restoring…' : `Restore v${restoreTarget.version}`}</button></>}<button className="secondary" onClick={onClose}>Close</button></footer>
+  </section></div>
 }

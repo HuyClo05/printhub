@@ -14,16 +14,25 @@ const upload = multer({ storage: multer.memoryStorage(), limits: { files: 4, fil
 const binary = process.env.ORCASLICER_PATH || '/opt/orcaslicer/squashfs-root/AppRun'
 const resources = process.env.ORCASLICER_PROFILES || '/opt/orcaslicer/squashfs-root/resources/profiles'
 const profileIndex = new Map()
-async function indexProfiles(directory) {
+// Vendors ship same-named bases (e.g. fdm_process_common), so parents resolve within the vendor first.
+const vendorIndex = new Map()
+const vendorOf = new WeakMap()
+async function indexProfiles(directory, vendor = '') {
   for (const entry of await fs.readdir(directory, { withFileTypes: true })) {
     const file = path.join(directory, entry.name)
-    if (entry.isDirectory()) await indexProfiles(file)
+    if (entry.isDirectory()) await indexProfiles(file, vendor || entry.name)
     else if (entry.name.endsWith('.json')) {
-      try { const profile = JSON.parse(await fs.readFile(file, 'utf8')); if (profile.type && profile.name) profileIndex.set(`${profile.type}/${profile.name}`, profile) } catch {}
+      try { const profile = JSON.parse(await fs.readFile(file, 'utf8')); if (profile.type && profile.name) { profileIndex.set(`${profile.type}/${profile.name}`, profile); vendorIndex.set(`${vendor}/${profile.type}/${profile.name}`, profile); vendorOf.set(profile, vendor) } } catch {}
     }
   }
 }
 await indexProfiles(resources)
+function resolveProfile(type, name, vendor, depth = 0) {
+  const profile = vendorIndex.get(`${vendor}/${type}/${name}`) || profileIndex.get(`${type}/${name}`)
+  if (!profile || depth > 16) return null
+  const parent = profile.inherits ? resolveProfile(type, profile.inherits, vendorOf.get(profile), depth + 1) : null
+  return { ...parent, ...profile }
+}
 function validateProfile(profile, type) {
   if (!profile || typeof profile !== 'object' || Array.isArray(profile)) throw new Error(`Invalid ${type} profile JSON`)
   if (profile.type !== type) throw new Error(`Expected a ${type} profile, received ${profile.type || 'an untyped profile'}`)
@@ -41,6 +50,13 @@ app.get('/profiles/:category', async (req, res) => {
   const type = { printers: 'machine', presets: 'process', filaments: 'filament' }[req.params.category]
   if (!type) return res.status(404).json({ message: 'Unknown profile category' })
   res.json([...profileIndex.values()].filter(p => p.type === type && p.instantiation !== 'false').map(p => p.name).sort())
+})
+app.get('/profiles/:category/:name', (req, res) => {
+  const type = { printers: 'machine', presets: 'process', filaments: 'filament' }[req.params.category]
+  if (!type) return res.status(404).json({ message: 'Unknown profile category' })
+  const profile = resolveProfile(type, req.params.name)
+  if (!profile) return res.status(404).json({ message: 'Profile not found' })
+  res.json(profile)
 })
 app.post('/slice', upload.fields([{ name: 'file', maxCount: 1 }, { name: 'printerProfile', maxCount: 1 }, { name: 'presetProfile', maxCount: 1 }, { name: 'filamentProfile', maxCount: 1 }]), async (req, res) => {
   if (active) return res.status(503).json({ message: 'Slicer is busy; this job will retry' })

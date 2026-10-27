@@ -40,8 +40,10 @@ Categories: `printers`, `presets` (process), `filaments`.
 | `POST` | `/slicer/profile-bundles` | Import `.orca_printer`/`.zip` (multipart `bundle`, max 25 MB) |
 | `GET` | `/slicer/profiles/{category}` | List profile names |
 | `GET` | `/slicer/profiles/{category}/{name}` | Latest settings for one profile |
-| `POST` | `/profiles` | Create a version from JSON settings |
-| `GET` | `/profiles` | List all owned versions |
+| `GET` | `/slicer/profiles/{category}/{name}/resolved` | Settings merged with the whole `inherits` chain (user, then system) |
+| `POST` | `/profiles` | Create a version from JSON settings, with an optional `note` |
+| `GET` | `/profiles` | List owned versions; optional `category` and `name` filters |
+| `POST` | `/profiles/{version_id}/restore` | Append a copy of an older version as the newest one (optional `note`) |
 | `GET` | `/profiles/{version_id}` | One version with settings |
 
 ### Slice jobs

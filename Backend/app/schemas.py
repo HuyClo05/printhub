@@ -102,6 +102,11 @@ class SlicerProfileCreate(BaseModel):
     category: str = Field(pattern=r"^(printers|presets|filaments)$")
     name: str = Field(min_length=1, max_length=255, pattern=r"^[A-Za-z0-9][A-Za-z0-9 @()._+\-]*$")
     settings: dict[str, Any]
+    note: str | None = Field(default=None, max_length=500)
+
+
+class SlicerProfileRestore(BaseModel):
+    note: str | None = Field(default=None, max_length=500)
 
 
 class SlicerProfileVersionResponse(BaseModel):
@@ -113,6 +118,8 @@ class SlicerProfileVersionResponse(BaseModel):
     version: int
     sha256: str
     created_at: datetime
+    note: str | None = None
+    restored_from_id: str | None = None
 
 
 class ProfileListResponse(BaseModel):

@@ -23,6 +23,10 @@ test('private slicer preserves preset inheritance, 3MF, statistics and cancellat
   try {
     await ready
     assert.deepEqual(await (await fetch(`${base}/profiles/printers`)).json(), ['Test machine'])
+    const resolved = await (await fetch(`${base}/profiles/presets/${encodeURIComponent('Test process child')}`)).json()
+    assert.equal(resolved.layer_height, '0.2')
+    assert.equal(resolved.line_width, '0.42')
+    assert.equal((await fetch(`${base}/profiles/presets/Missing`)).status, 404)
     const sliced = await request()
     assert.equal(sliced.status, 200, await sliced.clone().text())
     assert.equal(sliced.headers.get('x-print-time-seconds'), '62')

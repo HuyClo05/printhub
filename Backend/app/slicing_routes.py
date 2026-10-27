@@ -9,6 +9,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from uuid import uuid4
 
+import httpx
 from fastapi import APIRouter, Depends, File, Header, HTTPException, UploadFile
 from fastapi.responses import Response
 from sqlalchemy import select
@@ -30,12 +31,14 @@ from app.schemas import (
     ProfileListResponse,
     ProfileDetailResponse,
     SlicerProfileCreate,
+    SlicerProfileRestore,
     SlicerProfileVersionResponse,
     SliceJobCreate,
     SliceJobResponse,
     UploadUrlCreate,
     UploadUrlResponse,
 )
+from app.slicer import SlicerClient, SlicerError
 from app.storage import get_bytes, head_object, presigned_put_url
 
 
@@ -164,6 +167,45 @@ def get_slicer_profile(
     return ProfileDetailResponse(category=category, name=profile_name, settings=version.settings)
 
 
+@router.get("/slicer/profiles/{category}/{profile_name}/resolved", response_model=ProfileDetailResponse)
+async def get_resolved_slicer_profile(
+    category: str,
+    profile_name: str,
+    principal: Principal = Depends(get_current_principal),
+    db: Session = Depends(get_db),
+) -> ProfileDetailResponse:
+    """Return a profile merged with its whole inherits chain (user profiles first, then system)."""
+
+    if category not in PROFILE_CATEGORIES:
+        raise HTTPException(status_code=404, detail="Unknown slicer profile category")
+    if not profile_name or Path(profile_name).name != profile_name:
+        raise HTTPException(status_code=400, detail="Invalid profile name")
+    chain: list[dict] = []
+    name: object = profile_name
+    seen: set[str] = set()
+    try:
+        while isinstance(name, str) and name and name not in seen and len(seen) < 16:
+            seen.add(name)
+            try:
+                settings = latest_profile_version(db, owner_id=principal.subject, category=category, name=name).settings
+            except ProfileVersionError:
+                # System profiles resolve their own chain inside the slicer service.
+                settings = await SlicerClient().resolved_profile(category, name)
+                if settings is not None:
+                    chain.append(settings)
+                break
+            chain.append(settings)
+            name = settings.get("inherits")
+    except (SlicerError, httpx.HTTPError) as error:
+        raise HTTPException(status_code=502, detail="Slicer profile lookup failed") from error
+    if not chain:
+        raise HTTPException(status_code=404, detail="Slicer profile not found")
+    resolved: dict = {}
+    for settings in reversed(chain):
+        resolved.update(settings)
+    return ProfileDetailResponse(category=category, name=profile_name, settings=resolved)
+
+
 @router.post("/slicer/profile-bundles", status_code=201)
 async def import_profile_bundle(
     bundle: UploadFile = File(...),
@@ -220,6 +262,42 @@ def create_slicer_profile(
             category=request.category,
             name=request.name,
             settings=request.settings,
+            note=request.note,
+        )
+        db.commit()
+        db.refresh(version)
+        return version
+    except ProfileVersionError as error:
+        db.rollback()
+        raise HTTPException(status_code=400, detail=str(error)) from error
+
+
+@router.post("/profiles/{version_id}/restore", response_model=SlicerProfileVersionResponse, status_code=201)
+def restore_profile_version(
+    version_id: str,
+    request: SlicerProfileRestore,
+    principal: Principal = Depends(get_current_principal),
+    db: Session = Depends(get_db),
+) -> SlicerProfileVersion:
+    """Append a copy of an older version as the newest one; history is never rewritten."""
+
+    source = db.scalar(
+        select(SlicerProfileVersion).where(
+            SlicerProfileVersion.id == version_id,
+            SlicerProfileVersion.owner_id == principal.subject,
+        )
+    )
+    if source is None:
+        raise HTTPException(status_code=404, detail="Profile version not found")
+    try:
+        version, _created = create_profile_version(
+            db,
+            owner_id=principal.subject,
+            category=source.category,
+            name=source.name,
+            settings=source.settings,
+            note=request.note or f"Restored from v{source.version}",
+            restored_from_id=source.id,
         )
         db.commit()
         db.refresh(version)
@@ -231,13 +309,19 @@ def create_slicer_profile(
 
 @router.get("/profiles", response_model=list[SlicerProfileVersionResponse])
 def list_profile_versions(
+    category: str | None = None,
+    name: str | None = None,
     principal: Principal = Depends(get_current_principal),
     db: Session = Depends(get_db),
 ) -> list[SlicerProfileVersion]:
+    query = select(SlicerProfileVersion).where(SlicerProfileVersion.owner_id == principal.subject)
+    if category:
+        query = query.where(SlicerProfileVersion.category == category)
+    if name:
+        query = query.where(SlicerProfileVersion.name == name)
     return list(
         db.scalars(
-            select(SlicerProfileVersion)
-            .where(SlicerProfileVersion.owner_id == principal.subject)
+            query
             .order_by(
                 SlicerProfileVersion.category,
                 SlicerProfileVersion.name,
@@ -304,7 +388,7 @@ def create_slice_job(
             # Persist edited settings as a real immutable version before the
             # queue references it. Ownership and the category stay server-side.
             settings = {**process_version.settings, **request.process_overrides}
-            process_version, _ = create_profile_version(db, owner_id=principal.subject, category="presets", name=process_version.name, settings=settings)
+            process_version, _ = create_profile_version(db, owner_id=principal.subject, category="presets", name=process_version.name, settings=settings, note="Saved when slicing with unsaved changes")
     except ProfileVersionError as error:
         db.rollback()
         raise HTTPException(status_code=400, detail=str(error)) from error

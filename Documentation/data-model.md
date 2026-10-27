@@ -7,7 +7,7 @@ PostgreSQL holds metadata and state. SeaweedFS holds models and G-code. SQLAlche
 | Table | Purpose | Key fields |
 |---|---|---|
 | `users` | One row per token subject | `id` = OIDC `sub`, `email` |
-| `slicer_profile_versions` | Immutable printer/process/filament versions | `owner_id`, `category`, `name`, `version`, `settings` (JSONB), `sha256` |
+| `slicer_profile_versions` | Immutable printer/process/filament versions | `owner_id`, `category`, `name`, `version`, `settings` (JSONB), `sha256`, `note`, `restored_from_id` |
 | `stl_files` | Uploaded models (STL or 3MF) | `uploaded_by`, `stl_url` (object key), `sha256`, `upload_status` |
 | `print_jobs` | User-facing slice job | `created_by`, `job_name`, `status` |
 | `print_tasks` | Queue row for one job | profile version IDs, `attempt_count`/`max_attempts`, `lease_owner`, `lease_expires_at`, `available_at`, `gcode_key`, `gcode_sha256`, stats, `dead_lettered_at` |
@@ -55,6 +55,7 @@ Alembic, in `Backend/alembic/versions/`. The API container runs `alembic upgrade
 | `004_add_slicing_job_state` | Slicing states and results |
 | `005_self_hosted_slice_pipeline` | Profile versions, leases, retries, idempotency |
 | `006_workspace_printers` | Printer connections and commands |
+| `007_profile_version_history` | Version notes and restore lineage |
 
 Check the current revision:
 

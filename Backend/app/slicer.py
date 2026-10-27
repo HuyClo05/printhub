@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
+from urllib.parse import quote
 
 import httpx
 
@@ -35,6 +36,20 @@ class SlicerClient:
         payload = response.json()
         if not isinstance(payload, list) or not all(isinstance(item, str) for item in payload):
             raise SlicerError("Slicer returned an invalid profile list")
+        return payload
+
+    async def resolved_profile(self, category: str, name: str) -> dict | None:
+        """Return a system profile merged with its inherits chain, or None if unknown."""
+
+        async with httpx.AsyncClient(timeout=15.0) as http:
+            response = await http.get(f"{self.base_url}/profiles/{category}/{quote(name, safe='')}")
+        if response.status_code == 404:
+            return None
+        if response.status_code >= 400:
+            raise SlicerError(f"Slicer profile lookup failed ({response.status_code})")
+        payload = response.json()
+        if not isinstance(payload, dict):
+            raise SlicerError("Slicer returned an invalid profile")
         return payload
 
     async def slice_model(
